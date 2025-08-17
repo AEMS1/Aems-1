@@ -1,105 +1,160 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
-
   <meta charset="UTF-8">
-
-  <title>Element Battle Game</title>
-
-  <link rel="stylesheet" href="style.css">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Presale</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { background: #0f172a; color: white; }
+    .card { background: #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4);} 
+    .btn { background: linear-gradient(90deg,#06b6d4,#3b82f6); padding:0.75rem 1.5rem; border-radius: 1rem; font-weight: bold; color: white; }
+    .btn:disabled { background: gray; cursor:not-allowed; }
+  </style>
 </head>
+<body class="font-sans">
+  <!-- Hero Section -->
+  <section class="text-center py-12">
+    <h1 class="text-4xl font-bold mb-4">🚀 Welcome to Our Token Presale</h1>
+    <p class="text-lg text-gray-300 mb-6">Join early, buy tokens, and be part of our journey!</p>
+    <button class="btn">Connect Wallet</button>
+  </section>
 
-<body>
-
-  <h1>🔥 Element Battle Game 💧</h1>
-
-  <div class="menu-bottuns">
-
-    <a href="/notcoin/frens.html" class="button b-r">
-
-        <img src="i.png" alt="" width="35px">
-
-        <span class="select-none">Tried</span>
-
-    </a>
-
-    <a href="Token.html" class="button b-r">
-
-        <img src="l.png" alt="" width="35px">
-
-        <span class="select-none">token AEMS</span>
-
-    </a>
-
-    <a href="/notcoin/boost.html" class="button">
-
-        <img src="؟.png" alt="" width="35px">
-
-        <span class="select-none">Game guide</span>
-
-    </a>
-
-</div>
-
-  
-
-  <div id="wallet-info">
-
-    <button onclick="connectWallet()">🔌 Connect Wallet</button>
-
-    <p id="wallet-address"></p>
-
-    <p id="token-balance"></p>
-
-  </div>
-
-
-
-  <div id="game-start">
-
-    <button onclick="startGame()">🎮 Start Game (1000 LGD)</button>
-
-    <p id="game-status"></p>
-
-  </div>
-
-
-
-  <div id="game-area" style="display:none;">
-
-    <h2>Round <span id="round-number">1</span></h2>
-
-    <div id="choices">
-
-      <button onclick="makeChoice(0)">🔥 Fire</button>
-
-      <button onclick="makeChoice(1)">💧 Water</button>
-
-      <button onclick="makeChoice(2)">🌳 Tree</button>
-
-      <button onclick="makeChoice(3)">🌍 Earth</button>
-
-      <button onclick="makeChoice(4)">🪨 Stone</button>
-
+  <!-- Presale Progress -->
+  <section class="max-w-5xl mx-auto my-12">
+    <h2 class="text-3xl font-bold mb-6">Presale Stages</h2>
+    <div class="overflow-x-auto">
+      <table class="table-auto w-full text-center">
+        <thead class="bg-gray-800">
+          <tr>
+            <th class="px-4 py-2">Stage</th>
+            <th class="px-4 py-2">Price</th>
+            <th class="px-4 py-2">Tokens Available</th>
+            <th class="px-4 py-2">Raised</th>
+          </tr>
+        </thead>
+        <tbody id="presaleTable"></tbody>
+      </table>
     </div>
+  </section>
 
-    <p id="round-result"></p>
+  <!-- Buy Section -->
+  <section class="max-w-3xl mx-auto my-12 card">
+    <h2 class="text-2xl font-bold mb-4">Buy Tokens</h2>
+    <input id="buyAmount" type="number" placeholder="Enter USD Amount" class="w-full p-2 rounded mb-4 text-black">
+    <button class="btn w-full" onclick="buyTokens()">Buy Now</button>
+    <p id="buyInfo" class="mt-4 text-gray-300"></p>
+  </section>
 
-    <p id="final-result"></p>
+  <!-- Dashboard -->
+  <section class="max-w-3xl mx-auto my-12 card">
+    <h2 class="text-2xl font-bold mb-4">Your Dashboard</h2>
+    <p>Total Purchased: <span id="totalTokens">0</span> TOKENS</p>
+    <p>Unlocked: <span id="unlocked">0</span> TOKENS</p>
+    <p>Locked: <span id="locked">0</span> TOKENS</p>
+    <button id="claimBtn" class="btn mt-4" disabled>Claim Tokens</button>
+  </section>
 
-  </div>
+  <!-- Tokenomics -->
+  <section class="max-w-5xl mx-auto my-12">
+    <h2 class="text-3xl font-bold mb-6">Tokenomics</h2>
+    <canvas id="tokenomicsChart" class="mb-6"></canvas>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div class="card">Presale: 26%</div>
+      <div class="card">Liquidity: 40%</div>
+      <div class="card">Team: 10%</div>
+      <div class="card">Marketing: 12%</div>
+      <div class="card">Airdrop: 5%</div>
+      <div class="card">Reserve: 7%</div>
+    </div>
+  </section>
 
+  <!-- Roadmap -->
+  <section class="max-w-4xl mx-auto my-12">
+    <h2 class="text-3xl font-bold mb-6">Roadmap</h2>
+    <ol class="list-decimal space-y-4">
+      <li>Q1: Presale Launch</li>
+      <li>Q2: DEX Listing + LP Lock</li>
+      <li>Q3: CEX Listing & Partnerships</li>
+      <li>Q4: Ecosystem Expansion</li>
+    </ol>
+  </section>
 
+  <!-- Footer -->
+  <footer class="text-center py-8 text-gray-400">
+    <p>© 2025 YourToken. All rights reserved.</p>
+  </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script>
+    // Presale Data
+    const stages = [
+      { stage: 1, price: 0.05, tokens: 3_250_000, raised: 0 },
+      { stage: 2, price: 0.10, tokens: 3_250_000, raised: 0 },
+      { stage: 3, price: 0.15, tokens: 3_250_000, raised: 0 },
+      { stage: 4, price: 0.20, tokens: 3_250_000, raised: 0 },
+      { stage: 5, price: 0.25, tokens: 3_250_000, raised: 0 },
+      { stage: 6, price: 0.30, tokens: 3_250_000, raised: 0 },
+      { stage: 7, price: 0.35, tokens: 3_250_000, raised: 0 },
+      { stage: 8, price: 0.40, tokens: 3_250_000, raised: 0 },
+    ];
+    let currentStage = 0;
+    let totalPurchased = 0;
+    let unlocked = 0;
 
-  <script src="abi.js"></script>
+    function renderTable() {
+      const tbody = document.getElementById('presaleTable');
+      tbody.innerHTML = '';
+      stages.forEach(s => {
+        tbody.innerHTML += `<tr class='border-b border-gray-700'>
+          <td class='px-4 py-2'>${s.stage}</td>
+          <td class='px-4 py-2'>$${s.price.toFixed(2)}</td>
+          <td class='px-4 py-2'>${s.tokens.toLocaleString()}</td>
+          <td class='px-4 py-2'>$${s.raised.toLocaleString()}</td>
+        </tr>`;
+      });
+    }
 
-  <script src="main.js"></script>
+    function buyTokens() {
+      const amount = parseFloat(document.getElementById('buyAmount').value);
+      if (!amount || amount <= 0) return;
+      const stage = stages[currentStage];
+      const tokensToBuy = amount / stage.price;
+      if (tokensToBuy > stage.tokens) {
+        alert('Not enough tokens in this stage!');
+        return;
+      }
+      stage.tokens -= tokensToBuy;
+      stage.raised += amount;
+      totalPurchased += tokensToBuy;
+      document.getElementById('buyInfo').innerText = `You bought ${tokensToBuy.toFixed(2)} tokens.`;
+      renderTable();
+      updateDashboard();
+      if (stage.tokens <= 0 && currentStage < stages.length-1) {
+        currentStage++;
+      }
+    }
 
+    function updateDashboard() {
+      document.getElementById('totalTokens').innerText = totalPurchased.toFixed(2);
+      document.getElementById('unlocked').innerText = unlocked.toFixed(2);
+      document.getElementById('locked').innerText = (totalPurchased - unlocked).toFixed(2);
+    }
+
+    // Tokenomics Chart
+    new Chart(document.getElementById('tokenomicsChart'), {
+      type: 'pie',
+      data: {
+        labels: ["Presale", "Liquidity", "Team", "Marketing", "Airdrop", "Reserve"],
+        datasets: [{
+          data: [26,40,10,12,5,7],
+          backgroundColor: ["#3b82f6","#06b6d4","#f59e0b","#ef4444","#22c55e","#a855f7"]
+        }]
+      }
+    });
+
+    renderTable();
+    updateDashboard();
+  </script>
 </body>
-
 </html>
