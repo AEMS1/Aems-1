@@ -1,160 +1,579 @@
 <!DOCTYPE html>
-<html lang="en">
+<html dir="rtl" lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Token Presale</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>پیش‌فروش توکن | داشبورد حرفه‌ای</title>
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Ethers (برای اتصال کیف پول واقعی) -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- Chart.js برای توکنومیکس -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    body { background: #0f172a; color: white; }
-    .card { background: #1e293b; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.4);} 
-    .btn { background: linear-gradient(90deg,#06b6d4,#3b82f6); padding:0.75rem 1.5rem; border-radius: 1rem; font-weight: bold; color: white; }
-    .btn:disabled { background: gray; cursor:not-allowed; }
+    :root{ --bg:#0b1020; --card:#111735; --muted:#9aa4bf; --brand:#22d3ee; --brand2:#3b82f6; }
+    body{ background:radial-gradient(80rem 40rem at 80% -10%,rgba(59,130,246,.15),transparent),
+                     radial-gradient(60rem 30rem at -10% -20%,rgba(34,211,238,.18),transparent),
+                     var(--bg); color:#e6e9f5; font-family:"Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .card{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,.45); }
+    .btn{ background:linear-gradient(90deg,var(--brand),var(--brand2)); border-radius:1rem; padding:.9rem 1.2rem; font-weight:800; color:white; }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+    .soft{ color:var(--muted); }
+    .kbd{ background:#0b122b; border:1px solid rgba(255,255,255,.08); border-radius:.5rem; padding:.2rem .45rem; font-size:.9rem; }
+    .progress{ height:.625rem; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
+    .progress > span{ display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--brand2)); }
   </style>
 </head>
-<body class="font-sans">
-  <!-- Hero Section -->
-  <section class="text-center py-12">
-    <h1 class="text-4xl font-bold mb-4">🚀 Welcome to Our Token Presale</h1>
-    <p class="text-lg text-gray-300 mb-6">Join early, buy tokens, and be part of our journey!</p>
-    <button class="btn">Connect Wallet</button>
+<body>
+  <!-- هدر -->
+  <header class="sticky top-0 z-40 backdrop-blur bg-black/25 border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500"></div>
+        <div>
+          <h1 id="projectName" class="text-xl font-extrabold">نام پروژه</h1>
+          <p id="tokenTicker" class="text-xs soft">نماد: MTK</p>
+        </div>
+      </div>
+      <div class="ms-auto flex items-center gap-3">
+        <span id="networkBadge" class="text-xs soft hidden md:inline"></span>
+        <button id="btnConnect" class="btn">اتصال کیف پول</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- سکشن معرفی -->
+  <section class="max-w-7xl mx-auto px-4 pt-10 grid md:grid-cols-2 gap-8 items-center">
+    <div>
+      <h2 class="text-3xl md:text-5xl font-extrabold leading-[1.15]">پیش‌فروش رسمی <span id="heroToken" class="text-cyan-300">MTK</span></h2>
+      <p id="projectPitch" class="soft mt-4">در پیش‌فروش چندمرحله‌ای ما با قیمت‌های پلکانی شرکت کنید. تمام داده‌ها مستقیماً از قرارداد خوانده خواهد شد. پس از پایان، ۱۵٪ آزادسازی (TGE)، سپس ۶ ماه کلیف و بعد آزادسازی ماهانه باقی‌مانده.</p>
+      <div class="mt-6 flex gap-3">
+        <a href="#buy" class="btn">خرید توکن</a>
+        <a href="#stages" class="px-4 py-3 rounded-xl border border-white/15">مشاهده مراحل</a>
+      </div>
+      <div class="mt-6 text-sm soft">کل هدف جذب سرمایه: <span id="goalUSD" class="font-bold text-white"></span>
+        · کل توکن‌های پیش‌فروش: <span id="goalTKN" class="font-bold text-white"></span>
+      </div>
+    </div>
+    <div class="card p-6">
+      <h3 class="font-extrabold text-xl mb-4">وضعیت لحظه‌ای پیش‌فروش</h3>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="p-4 rounded-xl bg-white/5">
+          <div class="soft">مرحله فعلی</div>
+          <div class="text-2xl font-extrabold" id="currentStageLabel">—</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white/5">
+          <div class="soft">قیمت فعلی</div>
+          <div class="text-2xl font-extrabold"><span id="currentPrice">—</span> <span class="text-base">USD</span></div>
+        </div>
+        <div class="col-span-2 p-4 rounded-xl bg-white/5">
+          <div class="soft mb-2">پیشرفت مرحله</div>
+          <div class="progress"><span id="stageProgress" style="width:0%"></span></div>
+          <div class="flex justify-between text-xs soft mt-1"><span>فروخته‌شده: <span id="soldInStage">0</span></span><span>باقی‌مانده: <span id="leftInStage">0</span></span></div>
+        </div>
+        <div class="col-span-2 p-4 rounded-xl bg-white/5">
+          <div class="soft mb-1">سرمایه جذب‌شده کل</div>
+          <div class="progress"><span id="totalProgress" style="width:0%"></span></div>
+          <div class="flex justify-between text-xs soft mt-1"><span>USD جمع‌شده: <span id="raisedUSD">0</span></span><span>هدف: <span id="goalUSD2">0</span></span></div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- Presale Progress -->
-  <section class="max-w-5xl mx-auto my-12">
-    <h2 class="text-3xl font-bold mb-6">Presale Stages</h2>
-    <div class="overflow-x-auto">
-      <table class="table-auto w-full text-center">
-        <thead class="bg-gray-800">
+  <!-- جدول مراحل -->
+  <section id="stages" class="max-w-7xl mx-auto px-4 pt-12">
+    <div class="flex items-end justify-between mb-4">
+      <h3 class="text-2xl md:text-3xl font-extrabold">مراحل پیش‌فروش</h3>
+      <span class="soft text-sm">* با اتمام موجودی هر مرحله، مرحله بعد فعال می‌شود</span>
+    </div>
+    <div class="overflow-x-auto card p-0">
+      <table class="min-w-full">
+        <thead class="bg-white/10 text-sm">
           <tr>
-            <th class="px-4 py-2">Stage</th>
-            <th class="px-4 py-2">Price</th>
-            <th class="px-4 py-2">Tokens Available</th>
-            <th class="px-4 py-2">Raised</th>
+            <th class="text-right p-3">#</th>
+            <th class="text-right p-3">قیمت (USD)</th>
+            <th class="text-right p-3">توکن این مرحله</th>
+            <th class="text-right p-3">فروخته‌شده</th>
+            <th class="text-right p-3">باقی‌مانده</th>
+            <th class="text-right p-3">سرمایه (USD)</th>
           </tr>
         </thead>
-        <tbody id="presaleTable"></tbody>
+        <tbody id="stageRows" class="text-sm"></tbody>
       </table>
     </div>
   </section>
 
-  <!-- Buy Section -->
-  <section class="max-w-3xl mx-auto my-12 card">
-    <h2 class="text-2xl font-bold mb-4">Buy Tokens</h2>
-    <input id="buyAmount" type="number" placeholder="Enter USD Amount" class="w-full p-2 rounded mb-4 text-black">
-    <button class="btn w-full" onclick="buyTokens()">Buy Now</button>
-    <p id="buyInfo" class="mt-4 text-gray-300"></p>
-  </section>
+  <!-- خرید -->
+  <section id="buy" class="max-w-7xl mx-auto px-4 pt-12 grid md:grid-cols-2 gap-8 items-start">
+    <div class="card p-6">
+      <h3 class="font-extrabold text-xl mb-1">خرید توکن</h3>
+      <p class="soft mb-4 text-sm">پرداخت با USDT یا BNB. مقدار دلاری را وارد کنید، سیستم به‌صورت خودکار بین مراحل تقسیم می‌کند.</p>
 
-  <!-- Dashboard -->
-  <section class="max-w-3xl mx-auto my-12 card">
-    <h2 class="text-2xl font-bold mb-4">Your Dashboard</h2>
-    <p>Total Purchased: <span id="totalTokens">0</span> TOKENS</p>
-    <p>Unlocked: <span id="unlocked">0</span> TOKENS</p>
-    <p>Locked: <span id="locked">0</span> TOKENS</p>
-    <button id="claimBtn" class="btn mt-4" disabled>Claim Tokens</button>
+      <label class="block text-sm mb-1">ارز پرداخت</label>
+      <div class="flex gap-2 mb-4">
+        <button data-pay="USDT" class="pay btn" aria-pressed="true">USDT</button>
+        <button data-pay="BNB" class="pay px-4 py-3 rounded-xl border border-white/15">BNB</button>
+      </div>
+
+      <label class="block text-sm mb-1">مبلغ پرداخت (USD)</label>
+      <input id="inpUsd" type="number" min="1" step="1" placeholder="مثلاً 1000" class="w-full bg-black/30 border border-white/10 rounded-xl p-3 mb-3 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+
+      <div class="text-xs soft mb-3">دریافتی تقریبی: <span id="estTokens" class="text-white font-bold">0</span> MTK</div>
+
+      <button id="btnBuy" class="btn w-full">خرید</button>
+      <div id="buyMsg" class="soft text-sm mt-3"></div>
+
+      <div class="mt-4 text-xs soft">⚠️ پس از اتصال قرارداد واقعی، این دکمه تراکنش روی شبکه را اجرا می‌کند. در حال حاضر حالت دموی محاسبات فعال است.</div>
+    </div>
+
+    <!-- داشبورد کاربر / قفل‌گذاری -->
+    <div class="card p-6">
+      <h3 class="font-extrabold text-xl mb-1">داشبورد شما</h3>
+      <p class="soft text-sm mb-4">نمایش وضعیت آزادسازی پس از پایان پیش‌فروش</p>
+
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">کل خرید شما</div><div class="text-2xl font-extrabold" id="youTotal">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">آزاد شده</div><div class="text-2xl font-extrabold" id="youUnlocked">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">قفل شده</div><div class="text-2xl font-extrabold" id="youLocked">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">قابل Claim اکنون</div><div class="text-2xl font-extrabold" id="youClaimable">0</div></div>
+      </div>
+
+      <div class="mt-4">
+        <div class="soft text-xs mb-1">زمان آزادسازی بعدی</div>
+        <div class="p-3 rounded-xl bg-white/5 text-sm flex items-center gap-3">
+          <span class="kbd" id="nextReleaseLabel">—</span>
+          <span class="soft" id="countdown">—</span>
+        </div>
+      </div>
+
+      <button id="btnClaim" class="btn w-full mt-4" disabled>Claim توکن</button>
+      <div id="claimMsg" class="soft text-sm mt-3"></div>
+
+      <div class="mt-4 text-xs soft">الگوی قفل: <b>۱۵٪ TGE</b> · <b>۶ ماه کلیف</b> · سپس آزادسازی ماهانه <b>۱۴.۱۶۶۷٪</b> از کل تا تکمیل.</div>
+    </div>
   </section>
 
   <!-- Tokenomics -->
-  <section class="max-w-5xl mx-auto my-12">
-    <h2 class="text-3xl font-bold mb-6">Tokenomics</h2>
-    <canvas id="tokenomicsChart" class="mb-6"></canvas>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-      <div class="card">Presale: 26%</div>
-      <div class="card">Liquidity: 40%</div>
-      <div class="card">Team: 10%</div>
-      <div class="card">Marketing: 12%</div>
-      <div class="card">Airdrop: 5%</div>
-      <div class="card">Reserve: 7%</div>
+  <section id="tokenomics" class="max-w-7xl mx-auto px-4 pt-14">
+    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">توکنومیکس</h3>
+    <div class="grid lg:grid-cols-3 gap-8">
+      <div class="card p-6">
+        <canvas id="pie"></canvas>
+      </div>
+      <div class="lg:col-span-2 card p-6">
+        <div id="tokenomicsList" class="grid sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+        <div class="soft text-xs mt-4">برای ویرایش درصدها به شیء <span class="kbd">TOKENOMICS</span> در کد مراجعه کنید.</div>
+      </div>
     </div>
   </section>
 
   <!-- Roadmap -->
-  <section class="max-w-4xl mx-auto my-12">
-    <h2 class="text-3xl font-bold mb-6">Roadmap</h2>
-    <ol class="list-decimal space-y-4">
-      <li>Q1: Presale Launch</li>
-      <li>Q2: DEX Listing + LP Lock</li>
-      <li>Q3: CEX Listing & Partnerships</li>
-      <li>Q4: Ecosystem Expansion</li>
-    </ol>
+  <section id="roadmap" class="max-w-7xl mx-auto px-4 pt-14">
+    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">نقشه راه</h3>
+    <div class="card p-6">
+      <ol class="relative border-s border-white/10 ps-6 space-y-6">
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> شروع پیش‌فروش، انتشار وب‌سایت و وایت‌پیپر</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> پایان پیش‌فروش، شروع TGE و آماده‌سازی لیست در DEX</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> افزودن نقدینگی، قفل LP و شروع کلیف ۶ماهه</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> آغاز آزادسازی ماهانه و توسعه اکوسیستم</li>
+      </ol>
+    </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="text-center py-8 text-gray-400">
-    <p>© 2025 YourToken. All rights reserved.</p>
+  <!-- فوتر -->
+  <footer class="max-w-7xl mx-auto px-4 py-12 soft text-sm">
+    <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+      <div>© <span id="year"></span> <span id="brand">YourToken</span> — همه حقوق محفوظ است.</div>
+      <div class="flex gap-4">
+        <a class="underline" href="#">تلگرام</a>
+        <a class="underline" href="#">X (توییتر)</a>
+        <a class="underline" href="#">دیسکورد</a>
+        <a class="underline" href="#">وایت‌پیپر</a>
+      </div>
+    </div>
   </footer>
 
   <script>
-    // Presale Data
-    const stages = [
-      { stage: 1, price: 0.05, tokens: 3_250_000, raised: 0 },
-      { stage: 2, price: 0.10, tokens: 3_250_000, raised: 0 },
-      { stage: 3, price: 0.15, tokens: 3_250_000, raised: 0 },
-      { stage: 4, price: 0.20, tokens: 3_250_000, raised: 0 },
-      { stage: 5, price: 0.25, tokens: 3_250_000, raised: 0 },
-      { stage: 6, price: 0.30, tokens: 3_250_000, raised: 0 },
-      { stage: 7, price: 0.35, tokens: 3_250_000, raised: 0 },
-      { stage: 8, price: 0.40, tokens: 3_250_000, raised: 0 },
-    ];
-    let currentStage = 0;
-    let totalPurchased = 0;
+  // =====================
+  // ⚙️ پیکربندی قابل‌ویرایش
+  // =====================
+  const CONFIG = {
+    projectName: "YourToken",
+    symbol: "MTK",
+    decimals: 18,
+    // شبکه اصلی BSC = 56 ، تست نت = 97
+    network: { chainId: 56, name: "BSC Mainnet" },
+    // هدف جذب سرمایه (برای نوار پیشرفت کلی)
+    goalUSD: 8_000_000,
+    // کل توکن‌های پیش‌فروش
+    totalPresaleTokens: 26_000_000,
+    // قیمت لیست هدف (برای نمایش)
+    targetListingUSD: 0.45,
+    // تنظیمات قفل‌گذاری
+    vesting: {
+      tgeUnlockPct: 0.15,     // 15%
+      cliffMonths: 6,         // 6 ماه
+      postCliffMonths: 6,     // 6 قسط
+      postCliffMonthlyPctOfTotal: 0.85/6 // = 0.141666...
+    },
+    // تاریخ پایان پیش‌فروش (پس از اتصال قرارداد از خود قرارداد خوانده می‌شود)
+    // برای دموی تایمر، تاریخ نمونه ست می‌کنیم
+    presaleEndAt: null, // با دکمه پایان شبیه‌سازی می‌کنیم
+    // آدرس‌ها (بعداً مقداردهی کن)
+    addresses: {
+      PRESALE_CONTRACT: "",   // ← بعد از آماده‌شدن قرارداد وارد کن
+      USDT: "",               // ← آدرس USDT روی شبکه انتخابی
+    }
+  };
+
+  // مراحل (۸+۱ بونوس) — جمعاً 26,000,000 توکن و ≈ 8,004,000$
+  const STAGES = [
+    { id:1, price:0.15, tokens:4_000_000, sold:0 },
+    { id:2, price:0.20, tokens:3_800_000, sold:0 },
+    { id:3, price:0.25, tokens:3_600_000, sold:0 },
+    { id:4, price:0.28, tokens:3_400_000, sold:0 },
+    { id:5, price:0.32, tokens:3_200_000, sold:0 },
+    { id:6, price:0.34, tokens:3_000_000, sold:0 },
+    { id:7, price:0.36, tokens:2_800_000, sold:0 },
+    { id:8, price:0.40, tokens:2_200_000, sold:0 },
+    { id:9, price:0.43, tokens:2_000_000, sold:0 } // Bonus Stage
+  ];
+
+  // توکنومیکس (قابل ویرایش)
+  const TOKENOMICS = [
+    { label:"پیش‌فروش", value:26 },
+    { label:"نقدینگی", value:40 },
+    { label:"تیم", value:10 },
+    { label:"بازاریابی", value:12 },
+    { label:"ایردراپ", value:5 },
+    { label:"ذخیره", value:7 },
+  ];
+
+  // =====================
+  // 🧠 وضعیت برنامه (Front Demo)
+  // =====================
+  let provider, signer, user;
+  let payAsset = "USDT"; // یا "BNB"
+
+  // برای دموی خرید، داده‌های کاربر را در localStorage نگه می‌داریم
+  const LS_KEY = "presale_demo";
+  const state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+  if(!state.purchases){ state.purchases = {}; }
+  if(!state.raisedUSD){ state.raisedUSD = 0; }
+  if(!state.presaleEndedAt){ state.presaleEndedAt = null; }
+
+  // =====================
+  // 🧩 کمک‌تابع‌ها
+  // =====================
+  const $ = (sel)=>document.querySelector(sel);
+  const $$ = (sel)=>document.querySelectorAll(sel);
+  const fmt = (n)=>Number(n).toLocaleString("fa-IR");
+  const now = ()=> new Date();
+
+  function currentStageIndex(){
+    for(let i=0;i<STAGES.length;i++){
+      if(STAGES[i].sold < STAGES[i].tokens) return i;
+    }
+    return STAGES.length-1; // اگر همه پر شد آخرین را برگردان
+  }
+
+  function calcEstTokens(usd){
+    let remaining = usd;
+    let tokens = 0;
+    for(const s of STAGES){
+      const left = s.tokens - s.sold;
+      if(left <= 0) continue;
+      const maxUsdInStage = left * s.price;
+      const takeUsd = Math.min(remaining, maxUsdInStage);
+      tokens += takeUsd / s.price;
+      remaining -= takeUsd;
+      if(remaining <= 0) break;
+    }
+    return tokens;
+  }
+
+  function buySimulate(usd, address){
+    let remaining = usd;
+    for(const s of STAGES){
+      const left = s.tokens - s.sold;
+      if(left <= 0) continue;
+      const maxUsdInStage = left * s.price;
+      const takeUsd = Math.min(remaining, maxUsdInStage);
+      const takeTokens = takeUsd / s.price;
+      s.sold += takeTokens;
+      state.raisedUSD += takeUsd;
+      remaining -= takeUsd;
+      if(remaining <= 0) break;
+    }
+    state.purchases[address] = (state.purchases[address]||0) + (usd - remaining)/STAGES[currentStageIndex()].price; // نزدیک‌سازی
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }
+
+  function calcUserVesting(address){
+    const total = Number(state.purchases[address]||0);
+    if(!total) return { total:0, unlocked:0, claimable:0, nextRelease:null };
+
+    // اگر presaleEndAt تعیین نشده
+    const endAt = state.presaleEndedAt ? new Date(state.presaleEndedAt) : null;
+    if(!endAt){ return { total, unlocked:0, claimable:0, nextRelease:null } }
+
+    const v = CONFIG.vesting;
+    const tge = v.tgeUnlockPct * total; // 15%
+
+    const cliffEnd = new Date(endAt);
+    cliffEnd.setMonth(cliffEnd.getMonth() + v.cliffMonths);
+
+    const monthly = v.postCliffMonthlyPctOfTotal * total; // ≈14.1667% کل
+
     let unlocked = 0;
+    const nowTs = now();
 
-    function renderTable() {
-      const tbody = document.getElementById('presaleTable');
-      tbody.innerHTML = '';
-      stages.forEach(s => {
-        tbody.innerHTML += `<tr class='border-b border-gray-700'>
-          <td class='px-4 py-2'>${s.stage}</td>
-          <td class='px-4 py-2'>$${s.price.toFixed(2)}</td>
-          <td class='px-4 py-2'>${s.tokens.toLocaleString()}</td>
-          <td class='px-4 py-2'>$${s.raised.toLocaleString()}</td>
-        </tr>`;
-      });
+    if(nowTs >= endAt){ unlocked += tge; }
+
+    if(nowTs >= cliffEnd){
+      // چند ماه بعد از کلیف گذشته؟
+      let months = (nowTs.getFullYear()-cliffEnd.getFullYear())*12 + (nowTs.getMonth()-cliffEnd.getMonth());
+      // اگر روز ماه جاری هنوز نگذشته باشد، یک ماه کم کن
+      if(nowTs.getDate() < cliffEnd.getDate()) months -= 1;
+      months = Math.max(0, Math.min(months+1, CONFIG.vesting.postCliffMonths));
+      unlocked += months * monthly;
     }
 
-    function buyTokens() {
-      const amount = parseFloat(document.getElementById('buyAmount').value);
-      if (!amount || amount <= 0) return;
-      const stage = stages[currentStage];
-      const tokensToBuy = amount / stage.price;
-      if (tokensToBuy > stage.tokens) {
-        alert('Not enough tokens in this stage!');
-        return;
-      }
-      stage.tokens -= tokensToBuy;
-      stage.raised += amount;
-      totalPurchased += tokensToBuy;
-      document.getElementById('buyInfo').innerText = `You bought ${tokensToBuy.toFixed(2)} tokens.`;
-      renderTable();
-      updateDashboard();
-      if (stage.tokens <= 0 && currentStage < stages.length-1) {
-        currentStage++;
+    unlocked = Math.min(unlocked, total);
+
+    // محاسبه next release
+    let nextRelease = null;
+    if(!endAt || unlocked >= total){
+      nextRelease = null;
+    } else if(nowTs < endAt){
+      nextRelease = endAt;
+    } else if(nowTs < cliffEnd){
+      nextRelease = cliffEnd;
+    } else {
+      // بعد از کلیف، نوبت ماه بعدی
+      const vMonths = CONFIG.vesting.postCliffMonths;
+      // تعداد قسط‌های گذشته
+      let played = Math.floor((unlocked - tge + 1e-9) / monthly);
+      if(unlocked <= tge) played = 0;
+      if(played < vMonths){
+        nextRelease = new Date(cliffEnd);
+        nextRelease.setMonth(nextRelease.getMonth() + played + 1);
       }
     }
 
-    function updateDashboard() {
-      document.getElementById('totalTokens').innerText = totalPurchased.toFixed(2);
-      document.getElementById('unlocked').innerText = unlocked.toFixed(2);
-      document.getElementById('locked').innerText = (totalPurchased - unlocked).toFixed(2);
-    }
+    const claimed = Number(state.claimed?.[address]||0);
+    const claimable = Math.max(0, unlocked - claimed);
 
-    // Tokenomics Chart
-    new Chart(document.getElementById('tokenomicsChart'), {
-      type: 'pie',
-      data: {
-        labels: ["Presale", "Liquidity", "Team", "Marketing", "Airdrop", "Reserve"],
-        datasets: [{
-          data: [26,40,10,12,5,7],
-          backgroundColor: ["#3b82f6","#06b6d4","#f59e0b","#ef4444","#22c55e","#a855f7"]
-        }]
-      }
+    return { total, unlocked, claimable, nextRelease };
+  }
+
+  function renderHeader(){
+    document.getElementById('projectName').textContent = CONFIG.projectName;
+    document.getElementById('brand').textContent = CONFIG.projectName;
+    document.getElementById('tokenTicker').textContent = `نماد: ${CONFIG.symbol}`;
+    document.getElementById('heroToken').textContent = CONFIG.symbol;
+    document.getElementById('goalUSD').textContent = `${fmt(CONFIG.goalUSD)} دلار`;
+    document.getElementById('goalUSD2').textContent = `${fmt(CONFIG.goalUSD)} دلار`;
+    document.getElementById('goalTKN').textContent = `${fmt(CONFIG.totalPresaleTokens)} ${CONFIG.symbol}`;
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('networkBadge').textContent = `شبکه: ${CONFIG.network.name}`;
+  }
+
+  function renderStages(){
+    const rows = document.getElementById('stageRows');
+    rows.innerHTML = '';
+    let totalRaised = state.raisedUSD || 0;
+    STAGES.forEach(s=>{
+      const raisedStage = (s.sold * s.price) || 0;
+      totalRaised += 0; // محاسبه بالاتر انجام شده
+      const left = Math.max(0, s.tokens - s.sold);
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-white/10';
+      tr.innerHTML = `
+        <td class="p-3">${s.id}</td>
+        <td class="p-3">$${s.price.toFixed(2)}</td>
+        <td class="p-3">${fmt(s.tokens)}</td>
+        <td class="p-3">${fmt(Math.floor(s.sold))}</td>
+        <td class="p-3">${fmt(Math.floor(left))}</td>
+        <td class="p-3">$${fmt(Math.floor(raisedStage))}</td>
+      `;
+      rows.appendChild(tr);
     });
 
-    renderTable();
-    updateDashboard();
+    // کارت وضعیت بالا
+    const idx = currentStageIndex();
+    const active = STAGES[idx];
+    document.getElementById('currentStageLabel').textContent = `مرحله ${active.id}/${STAGES.length}`;
+    document.getElementById('currentPrice').textContent = active.price.toFixed(2);
+    const left = Math.max(0, active.tokens - active.sold);
+    const sold = Math.min(active.tokens, active.sold);
+    const pct = Math.min(100, Math.round((sold/active.tokens)*100));
+    document.getElementById('stageProgress').style.width = pct + '%';
+    document.getElementById('soldInStage').textContent = fmt(Math.floor(sold));
+    document.getElementById('leftInStage').textContent = fmt(Math.floor(left));
+
+    // پیشرفت کل
+    const raised = STAGES.reduce((sum,s)=> sum + s.sold*s.price, 0);
+    const pctGoal = Math.min(100, (raised/CONFIG.goalUSD)*100);
+    document.getElementById('raisedUSD').textContent = fmt(Math.floor(raised));
+    document.getElementById('totalProgress').style.width = pctGoal + '%';
+  }
+
+  function renderUser(){
+    const addr = user || 'demo';
+    const v = calcUserVesting(addr);
+    document.getElementById('youTotal').textContent = fmt(v.total.toFixed ? Number(v.total.toFixed(2)) : v.total);
+    document.getElementById('youUnlocked').textContent = fmt(Number(v.unlocked.toFixed(2)));
+    document.getElementById('youLocked').textContent = fmt(Number((v.total - v.unlocked).toFixed(2)));
+    document.getElementById('youClaimable').textContent = fmt(Number(v.claimable.toFixed(2)));
+
+    const btn = document.getElementById('btnClaim');
+    btn.disabled = !(v.claimable > 0);
+
+    const lbl = document.getElementById('nextReleaseLabel');
+    const cd = document.getElementById('countdown');
+    if(v.nextRelease){
+      lbl.textContent = v.nextRelease.toLocaleDateString('fa-IR');
+      const ms = v.nextRelease - now();
+      if(ms > 0){
+        const d = Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000);
+        cd.textContent = `${d} روز، ${h} ساعت، ${m} دقیقه`; 
+      } else cd.textContent = "—";
+    } else {
+      lbl.textContent = '—';
+      cd.textContent = '—';
+    }
+  }
+
+  function renderTokenomics(){
+    const list = document.getElementById('tokenomicsList');
+    list.innerHTML = '';
+    TOKENOMICS.forEach((t,i)=>{
+      const el = document.createElement('div');
+      el.className = 'p-4 rounded-xl bg-white/5 flex items-center justify-between';
+      el.innerHTML = `<span>${t.label}</span><b>${t.value}%</b>`;
+      list.appendChild(el);
+    });
+
+    const ctx = document.getElementById('pie');
+    const data = TOKENOMICS.map(t=>t.value);
+    const labels = TOKENOMICS.map(t=>t.label);
+    new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data }] }, options:{ plugins:{ legend:{ position:'bottom' }}}});
+  }
+
+  // =====================
+  // 🎛️ رویدادها
+  // =====================
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('.pay');
+    if(el){
+      $$('.pay').forEach(x=>{ x.className = 'pay px-4 py-3 rounded-xl border border-white/15'; x.setAttribute('aria-pressed','false') });
+      el.className = 'pay btn'; el.setAttribute('aria-pressed','true');
+      payAsset = el.dataset.pay;
+    }
+  });
+
+  document.getElementById('inpUsd').addEventListener('input', (e)=>{
+    const usd = Number(e.target.value||0);
+    const est = calcEstTokens(usd);
+    document.getElementById('estTokens').textContent = fmt(est.toFixed(2));
+  });
+
+  document.getElementById('btnBuy').addEventListener('click', async()=>{
+    const usd = Number(document.getElementById('inpUsd').value||0);
+    if(!usd || usd < 1){ document.getElementById('buyMsg').textContent = 'مبلغ معتبر وارد کنید.'; return; }
+
+    if(!CONFIG.addresses.PRESALE_CONTRACT){
+      // حالت دمو: فقط محاسبات و به‌روزرسانی جدول
+      const addr = user || 'demo';
+      buySimulate(usd, addr);
+      document.getElementById('buyMsg').textContent = `✅ خرید شبیه‌سازی شد. مبلغ ${fmt(usd)} USD ثبت شد.`;
+      renderStages(); renderUser();
+      return;
+    }
+
+    // حالت واقعی (پس از پر کردن آدرس‌ها و ABI)
+    try{
+      if(!provider){ await connect(); }
+      // TODO: 
+      // 1) اگر payAsset==USDT: 
+      //    - approve(USDT -> PRESALE_CONTRACT, usd * 10**decimals)
+      //    - presaleContract.buyWithUSDT(usdAmount)
+      // 2) اگر payAsset==BNB:
+      //    - presaleContract.buyWithBNB({ value: ethers.utils.parseEther(bnbValue) })
+      document.getElementById('buyMsg').textContent = '⚠️ برای فعال‌سازی خرید واقعی، آدرس قرارداد/USDT و ABI را در کد وارد کنید.';
+    }catch(err){
+      document.getElementById('buyMsg').textContent = 'خطا در تراکنش: ' + (err?.message||err);
+    }
+  });
+
+  document.getElementById('btnClaim').addEventListener('click', async()=>{
+    if(!CONFIG.addresses.PRESALE_CONTRACT){
+      // دمو: Claim = افزودن به claimed محلی
+      const addr = user || 'demo';
+      const v = calcUserVesting(addr);
+      if(v.claimable>0){
+        state.claimed = state.claimed||{};
+        state.claimed[addr] = (state.claimed[addr]||0) + v.claimable;
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        document.getElementById('claimMsg').textContent = `✅ ${fmt(v.claimable.toFixed(2))} توکن Claim شد (دمو).`;
+        renderUser();
+      } else {
+        document.getElementById('claimMsg').textContent = 'هنوز توکنی قابل Claim نیست.';
+      }
+      return;
+    }
+    // حالت واقعی: فراخوانی متد claim() قرارداد
+    document.getElementById('claimMsg').textContent = '⚠️ برای Claim واقعی، ABI/Address قرارداد را تنظیم کنید.';
+  });
+
+  // دکمه پایان پیش‌فروش (برای دمو)
+  const endBtn = document.createElement('button');
+  endBtn.className = 'mt-6 px-4 py-2 rounded-xl border border-white/15 text-sm';
+  endBtn.textContent = 'پایان پیش‌فروش (دمو) و شروع TGE';
+  endBtn.addEventListener('click', ()=>{
+    state.presaleEndedAt = new Date().toISOString();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    renderUser();
+    alert('پیش‌فروش در حالت دمو پایان یافت. ۱۵٪ TGE آزاد شد.');
+  });
+  document.querySelector('#buy .card').appendChild(endBtn);
+
+  // اتصال کیف پول
+  async function connect(){
+    if(!window.ethereum){ alert('کیف پول Web3 در مرورگر یافت نشد (MetaMask).'); return; }
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    const accounts = await provider.send('eth_requestAccounts', []);
+    signer = provider.getSigner();
+    user = accounts[0];
+    document.getElementById('btnConnect').textContent = userShort(user);
+
+    // بررسی شبکه
+    const net = await provider.getNetwork();
+    if(Number(net.chainId) !== Number(CONFIG.network.chainId)){
+      try{
+        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x'+CONFIG.network.chainId.toString(16) }]);
+      }catch(e){ console.warn('switch failed', e); }
+    }
+    renderUser();
+  }
+
+  function userShort(a){ return a ? `${a.slice(0,6)}…${a.slice(-4)}` : 'متصل نیست'; }
+  document.getElementById('btnConnect').addEventListener('click', connect);
+
+  // رندر اولیه
+  renderHeader();
+  renderStages();
+  renderUser();
+  renderTokenomics();
+
+  // تایمر شمارش برای آپدیت کنت‌داون
+  setInterval(()=> renderUser(), 30_000);
+
   </script>
 </body>
 </html>
