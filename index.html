@@ -1,24 +1,25 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="fa">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>پیش‌فروش توکن | داشبورد حرفه‌ای</title>
+  <title>Token Presale | Professional Dashboard</title>
   <!-- TailwindCSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Icons -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <!-- Ethers (برای اتصال کیف پول واقعی) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Ethers.js for real wallet connection -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <!-- Chart.js برای توکنومیکس -->
+  <!-- Chart.js for Tokenomics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root{ --bg:#0b1020; --card:#111735; --muted:#9aa4bf; --brand:#22d3ee; --brand2:#3b82f6; }
+    *{ font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial }
     body{ background:radial-gradient(80rem 40rem at 80% -10%,rgba(59,130,246,.15),transparent),
                      radial-gradient(60rem 30rem at -10% -20%,rgba(34,211,238,.18),transparent),
-                     var(--bg); color:#e6e9f5; font-family:"Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+                     var(--bg); color:#e6e9f5; }
     .card{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,.45); }
     .btn{ background:linear-gradient(90deg,var(--brand),var(--brand2)); border-radius:1rem; padding:.9rem 1.2rem; font-weight:800; color:white; }
     .btn[disabled]{ opacity:.5; cursor:not-allowed; }
@@ -26,80 +27,82 @@
     .kbd{ background:#0b122b; border:1px solid rgba(255,255,255,.08); border-radius:.5rem; padding:.2rem .45rem; font-size:.9rem; }
     .progress{ height:.625rem; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
     .progress > span{ display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--brand2)); }
+    .pill{ padding:.25rem .6rem; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:.75rem }
+    .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace }
   </style>
 </head>
 <body>
-  <!-- هدر -->
+  <!-- Header -->
   <header class="sticky top-0 z-40 backdrop-blur bg-black/25 border-b border-white/10">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500"></div>
         <div>
-          <h1 id="projectName" class="text-xl font-extrabold">نام پروژه</h1>
-          <p id="tokenTicker" class="text-xs soft">نماد: MTK</p>
+          <h1 id="projectName" class="text-xl font-extrabold">YourToken</h1>
+          <p id="tokenTicker" class="text-xs soft">Ticker: MTK</p>
         </div>
       </div>
       <div class="ms-auto flex items-center gap-3">
         <span id="networkBadge" class="text-xs soft hidden md:inline"></span>
-        <button id="btnConnect" class="btn">اتصال کیف پول</button>
+        <button id="btnConnect" class="btn">Connect Wallet</button>
       </div>
     </div>
   </header>
 
-  <!-- سکشن معرفی -->
+  <!-- Hero -->
   <section class="max-w-7xl mx-auto px-4 pt-10 grid md:grid-cols-2 gap-8 items-center">
     <div>
-      <h2 class="text-3xl md:text-5xl font-extrabold leading-[1.15]">پیش‌فروش رسمی <span id="heroToken" class="text-cyan-300">MTK</span></h2>
-      <p id="projectPitch" class="soft mt-4">در پیش‌فروش چندمرحله‌ای ما با قیمت‌های پلکانی شرکت کنید. تمام داده‌ها مستقیماً از قرارداد خوانده خواهد شد. پس از پایان، ۱۵٪ آزادسازی (TGE)، سپس ۶ ماه کلیف و بعد آزادسازی ماهانه باقی‌مانده.</p>
+      <h2 class="text-3xl md:text-5xl font-extrabold leading-[1.15]">Official <span id="heroToken" class="text-cyan-300">MTK</span> Presale</h2>
+      <p id="projectPitch" class="soft mt-4">Multi-stage presale with gently increasing prices. Secure on-chain vesting: 15% TGE, 6-month cliff, then monthly release until fully unlocked.</p>
       <div class="mt-6 flex gap-3">
-        <a href="#buy" class="btn">خرید توکن</a>
-        <a href="#stages" class="px-4 py-3 rounded-xl border border-white/15">مشاهده مراحل</a>
+        <a href="#buy" class="btn">Buy Tokens</a>
+        <a href="#stages" class="px-4 py-3 rounded-xl border border-white/15">View Stages</a>
       </div>
-      <div class="mt-6 text-sm soft">کل هدف جذب سرمایه: <span id="goalUSD" class="font-bold text-white"></span>
-        · کل توکن‌های پیش‌فروش: <span id="goalTKN" class="font-bold text-white"></span>
+      <div class="mt-6 text-sm soft">Total raise target: <span id="goalUSD" class="font-bold text-white"></span>
+        · Presale allocation: <span id="goalTKN" class="font-bold text-white"></span>
       </div>
     </div>
     <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-4">وضعیت لحظه‌ای پیش‌فروش</h3>
+      <h3 class="font-extrabold text-xl mb-4">Live Presale Status</h3>
       <div class="grid grid-cols-2 gap-4 text-sm">
         <div class="p-4 rounded-xl bg-white/5">
-          <div class="soft">مرحله فعلی</div>
+          <div class="soft">Current Stage</div>
           <div class="text-2xl font-extrabold" id="currentStageLabel">—</div>
         </div>
         <div class="p-4 rounded-xl bg-white/5">
-          <div class="soft">قیمت فعلی</div>
+          <div class="soft">Current Price</div>
           <div class="text-2xl font-extrabold"><span id="currentPrice">—</span> <span class="text-base">USD</span></div>
         </div>
         <div class="col-span-2 p-4 rounded-xl bg-white/5">
-          <div class="soft mb-2">پیشرفت مرحله</div>
+          <div class="soft mb-2">Stage Progress</div>
           <div class="progress"><span id="stageProgress" style="width:0%"></span></div>
-          <div class="flex justify-between text-xs soft mt-1"><span>فروخته‌شده: <span id="soldInStage">0</span></span><span>باقی‌مانده: <span id="leftInStage">0</span></span></div>
+          <div class="flex justify-between text-xs soft mt-1"><span>Sold: <span id="soldInStage">0</span></span><span>Left: <span id="leftInStage">0</span></span></div>
         </div>
         <div class="col-span-2 p-4 rounded-xl bg-white/5">
-          <div class="soft mb-1">سرمایه جذب‌شده کل</div>
+          <div class="soft mb-1">Total Raised</div>
           <div class="progress"><span id="totalProgress" style="width:0%"></span></div>
-          <div class="flex justify-between text-xs soft mt-1"><span>USD جمع‌شده: <span id="raisedUSD">0</span></span><span>هدف: <span id="goalUSD2">0</span></span></div>
+          <div class="flex justify-between text-xs soft mt-1"><span>Raised (USD): <span id="raisedUSD">0</span></span><span>Target: <span id="goalUSD2">0</span></span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- جدول مراحل -->
+  <!-- Stages Table -->
   <section id="stages" class="max-w-7xl mx-auto px-4 pt-12">
     <div class="flex items-end justify-between mb-4">
-      <h3 class="text-2xl md:text-3xl font-extrabold">مراحل پیش‌فروش</h3>
-      <span class="soft text-sm">* با اتمام موجودی هر مرحله، مرحله بعد فعال می‌شود</span>
+      <h3 class="text-2xl md:text-3xl font-extrabold">Presale Stages</h3>
+      <span class="soft text-sm">* When a stage sells out, the next stage auto-activates</span>
     </div>
     <div class="overflow-x-auto card p-0">
       <table class="min-w-full">
         <thead class="bg-white/10 text-sm">
           <tr>
-            <th class="text-right p-3">#</th>
-            <th class="text-right p-3">قیمت (USD)</th>
-            <th class="text-right p-3">توکن این مرحله</th>
-            <th class="text-right p-3">فروخته‌شده</th>
-            <th class="text-right p-3">باقی‌مانده</th>
-            <th class="text-right p-3">سرمایه (USD)</th>
+            <th class="text-left p-3">#</th>
+            <th class="text-left p-3">Price (USD)</th>
+            <th class="text-left p-3">Stage Tokens</th>
+            <th class="text-left p-3">Sold</th>
+            <th class="text-left p-3">Left</th>
+            <th class="text-left p-3">Raised (USD)</th>
           </tr>
         </thead>
         <tbody id="stageRows" class="text-sm"></tbody>
@@ -107,130 +110,127 @@
     </div>
   </section>
 
-  <!-- خرید -->
+  <!-- Buy -->
   <section id="buy" class="max-w-7xl mx-auto px-4 pt-12 grid md:grid-cols-2 gap-8 items-start">
     <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-1">خرید توکن</h3>
-      <p class="soft mb-4 text-sm">پرداخت با USDT یا BNB. مقدار دلاری را وارد کنید، سیستم به‌صورت خودکار بین مراحل تقسیم می‌کند.</p>
+      <h3 class="font-extrabold text-xl mb-1">Buy Tokens</h3>
+      <p class="soft mb-4 text-sm">Pay in USDT or BNB. The system automatically splits your order across stages if needed.</p>
 
-      <label class="block text-sm mb-1">ارز پرداخت</label>
+      <label class="block text-sm mb-1">Payment Asset</label>
       <div class="flex gap-2 mb-4">
         <button data-pay="USDT" class="pay btn" aria-pressed="true">USDT</button>
         <button data-pay="BNB" class="pay px-4 py-3 rounded-xl border border-white/15">BNB</button>
       </div>
 
-      <label class="block text-sm mb-1">مبلغ پرداخت (USD)</label>
-      <input id="inpUsd" type="number" min="1" step="1" placeholder="مثلاً 1000" class="w-full bg-black/30 border border-white/10 rounded-xl p-3 mb-3 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+      <label class="block text-sm mb-1">Amount (USD)</label>
+      <input id="inpUsd" type="number" min="1" step="1" placeholder="e.g. 1000" class="w-full bg-black/30 border border-white/10 rounded-xl p-3 mb-3 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
 
-      <div class="text-xs soft mb-3">دریافتی تقریبی: <span id="estTokens" class="text-white font-bold">0</span> MTK</div>
+      <div class="text-xs soft mb-3">Estimated tokens: <span id="estTokens" class="text-white font-bold">0</span> <span id="symbolInline">MTK</span></div>
 
-      <button id="btnBuy" class="btn w-full">خرید</button>
+      <button id="btnBuy" class="btn w-full">Buy</button>
       <div id="buyMsg" class="soft text-sm mt-3"></div>
 
-      <div class="mt-4 text-xs soft">⚠️ پس از اتصال قرارداد واقعی، این دکمه تراکنش روی شبکه را اجرا می‌کند. در حال حاضر حالت دموی محاسبات فعال است.</div>
+      <div class="mt-4 text-xs soft">Once contract addresses & ABIs are set, this button performs a real on-chain transaction.</div>
     </div>
 
-    <!-- داشبورد کاربر / قفل‌گذاری -->
+    <!-- User Dashboard / Vesting -->
     <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-1">داشبورد شما</h3>
-      <p class="soft text-sm mb-4">نمایش وضعیت آزادسازی پس از پایان پیش‌فروش</p>
+      <h3 class="font-extrabold text-xl mb-1">Your Dashboard</h3>
+      <p class="soft text-sm mb-4">Unlocks start automatically when presale ends.</p>
 
       <div class="grid grid-cols-2 gap-4 text-sm">
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">کل خرید شما</div><div class="text-2xl font-extrabold" id="youTotal">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">آزاد شده</div><div class="text-2xl font-extrabold" id="youUnlocked">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">قفل شده</div><div class="text-2xl font-extrabold" id="youLocked">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">قابل Claim اکنون</div><div class="text-2xl font-extrabold" id="youClaimable">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Your Total</div><div class="text-2xl font-extrabold" id="youTotal">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Unlocked</div><div class="text-2xl font-extrabold" id="youUnlocked">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Locked</div><div class="text-2xl font-extrabold" id="youLocked">0</div></div>
+        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Claimable Now</div><div class="text-2xl font-extrabold" id="youClaimable">0</div></div>
       </div>
 
       <div class="mt-4">
-        <div class="soft text-xs mb-1">زمان آزادسازی بعدی</div>
+        <div class="soft text-xs mb-1">Next release</div>
         <div class="p-3 rounded-xl bg-white/5 text-sm flex items-center gap-3">
           <span class="kbd" id="nextReleaseLabel">—</span>
           <span class="soft" id="countdown">—</span>
         </div>
       </div>
 
-      <button id="btnClaim" class="btn w-full mt-4" disabled>Claim توکن</button>
+      <button id="btnClaim" class="btn w-full mt-4" disabled>Claim</button>
       <div id="claimMsg" class="soft text-sm mt-3"></div>
 
-      <div class="mt-4 text-xs soft">الگوی قفل: <b>۱۵٪ TGE</b> · <b>۶ ماه کلیف</b> · سپس آزادسازی ماهانه <b>۱۴.۱۶۶۷٪</b> از کل تا تکمیل.</div>
+      <div class="mt-4 text-xs soft">Presale buyers vesting: <b>15% TGE</b> · <b>6-month cliff</b> · then monthly linear until 100%.</div>
     </div>
   </section>
 
   <!-- Tokenomics -->
   <section id="tokenomics" class="max-w-7xl mx-auto px-4 pt-14">
-    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">توکنومیکس</h3>
+    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">Tokenomics</h3>
+    <div class="card p-6 mb-6">
+      <p class="soft text-sm">Distribution & vesting rules (editable in <span class="kbd">TOKENOMICS</span> and <span class="kbd">CATEGORY_VESTING</span> objects below).</p>
+    </div>
     <div class="grid lg:grid-cols-3 gap-8">
       <div class="card p-6">
         <canvas id="pie"></canvas>
       </div>
       <div class="lg:col-span-2 card p-6">
         <div id="tokenomicsList" class="grid sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-        <div class="soft text-xs mt-4">برای ویرایش درصدها به شیء <span class="kbd">TOKENOMICS</span> در کد مراجعه کنید.</div>
       </div>
     </div>
   </section>
 
   <!-- Roadmap -->
   <section id="roadmap" class="max-w-7xl mx-auto px-4 pt-14">
-    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">نقشه راه</h3>
+    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">Roadmap</h3>
     <div class="card p-6">
       <ol class="relative border-s border-white/10 ps-6 space-y-6">
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> شروع پیش‌فروش، انتشار وب‌سایت و وایت‌پیپر</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> پایان پیش‌فروش، شروع TGE و آماده‌سازی لیست در DEX</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> افزودن نقدینگی، قفل LP و شروع کلیف ۶ماهه</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> آغاز آزادسازی ماهانه و توسعه اکوسیستم</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Presale launch, website & whitepaper</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Presale end (TGE + listing prep)</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Add liquidity, LP lock, start 6-month cliff</li>
+        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Monthly releases & ecosystem growth</li>
       </ol>
     </div>
   </section>
 
-  <!-- فوتر -->
+  <!-- Footer -->
   <footer class="max-w-7xl mx-auto px-4 py-12 soft text-sm">
     <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-      <div>© <span id="year"></span> <span id="brand">YourToken</span> — همه حقوق محفوظ است.</div>
+      <div>© <span id="year"></span> <span id="brand">YourToken</span> — All rights reserved.</div>
       <div class="flex gap-4">
-        <a class="underline" href="#">تلگرام</a>
-        <a class="underline" href="#">X (توییتر)</a>
-        <a class="underline" href="#">دیسکورد</a>
-        <a class="underline" href="#">وایت‌پیپر</a>
+        <a class="underline" href="#">Telegram</a>
+        <a class="underline" href="#">X (Twitter)</a>
+        <a class="underline" href="#">Discord</a>
+        <a class="underline" href="#">Whitepaper</a>
       </div>
     </div>
   </footer>
 
   <script>
   // =====================
-  // ⚙️ پیکربندی قابل‌ویرایش
+  // ⚙️ Editable Configuration
   // =====================
   const CONFIG = {
     projectName: "YourToken",
     symbol: "MTK",
     decimals: 18,
-    // شبکه اصلی BSC = 56 ، تست نت = 97
-    network: { chainId: 56, name: "BSC Mainnet" },
-    // هدف جذب سرمایه (برای نوار پیشرفت کلی)
+    network: { chainId: 56, name: "BSC Mainnet" }, // 56 mainnet, 97 testnet
     goalUSD: 8_000_000,
-    // کل توکن‌های پیش‌فروش
     totalPresaleTokens: 26_000_000,
-    // قیمت لیست هدف (برای نمایش)
     targetListingUSD: 0.45,
-    // تنظیمات قفل‌گذاری
+    // Presale buyers vesting
     vesting: {
-      tgeUnlockPct: 0.15,     // 15%
-      cliffMonths: 6,         // 6 ماه
-      postCliffMonths: 6,     // 6 قسط
-      postCliffMonthlyPctOfTotal: 0.85/6 // = 0.141666...
+      tgeUnlockPct: 0.15,       // 15% at TGE
+      cliffMonths: 6,           // 6-month cliff
+      postCliffMonths: 6,       // linear months after cliff
+      postCliffMonthlyPctOfTotal: 0.85/6
     },
-    // تاریخ پایان پیش‌فروش (پس از اتصال قرارداد از خود قرارداد خوانده می‌شود)
-    // برای دموی تایمر، تاریخ نمونه ست می‌کنیم
-    presaleEndAt: null, // با دکمه پایان شبیه‌سازی می‌کنیم
-    // آدرس‌ها (بعداً مقداردهی کن)
+    // Addresses (FILL AFTER DEPLOY)
     addresses: {
-      PRESALE_CONTRACT: "",   // ← بعد از آماده‌شدن قرارداد وارد کن
-      USDT: "",               // ← آدرس USDT روی شبکه انتخابی
+      PRESALE_CONTRACT: "", // e.g. 0x...
+      VESTING_CONTRACT: "", // e.g. 0x...
+      TOKEN: "",            // e.g. 0x...
+      USDT: ""              // USDT on the same chain
     }
   };
 
-  // مراحل (۸+۱ بونوس) — جمعاً 26,000,000 توکن و ≈ 8,004,000$
+  // Stages (8 main + 1 bonus) — total 26,000,000 tokens and ≈ $8,004,000
   const STAGES = [
     { id:1, price:0.15, tokens:4_000_000, sold:0 },
     { id:2, price:0.20, tokens:3_800_000, sold:0 },
@@ -240,45 +240,145 @@
     { id:6, price:0.34, tokens:3_000_000, sold:0 },
     { id:7, price:0.36, tokens:2_800_000, sold:0 },
     { id:8, price:0.40, tokens:2_200_000, sold:0 },
-    { id:9, price:0.43, tokens:2_000_000, sold:0 } // Bonus Stage
+    { id:9, price:0.43, tokens:2_000_000, sold:0 }
   ];
 
-  // توکنومیکس (قابل ویرایش)
+  // Tokenomics (as requested)
   const TOKENOMICS = [
-    { label:"پیش‌فروش", value:26 },
-    { label:"نقدینگی", value:40 },
-    { label:"تیم", value:10 },
-    { label:"بازاریابی", value:12 },
-    { label:"ایردراپ", value:5 },
-    { label:"ذخیره", value:7 },
+    { key:"Presale", value:26, note:"Public presale allocation" },
+    { key:"Exchange Liquidity", value:12, note:"LP on DEX/CEX" },
+    { key:"Community Rewards", value:15, note:"Staking · Competitions · Polls" },
+    { key:"Project Development", value:20, note:"Build & operations" },
+    { key:"Team", value:5, note:"17-month lock, monthly unlocks" },
+    { key:"Marketing", value:17, note:"Campaigns & KOLs" },
+    { key:"Ecosystem Reserve", value:5, note:"16-month lock, then release" }
   ];
+
+  // Category vesting rules (for contracts; UI info only here)
+  // Assumptions where unspecified:
+  // - Community Rewards: 6-month cliff, then linear monthly over 12 months
+  // - Team: 17-month cliff, then linear monthly over 12 months
+  // - Marketing: 9-month cliff, then linear monthly over 12 months
+  // - Ecosystem Reserve: 16-month cliff, then 100% release (no linear)
+  const CATEGORY_VESTING = {
+    COMMUNITY: { cliffMonths: 6, linearMonths: 12, tgePct: 0 },
+    TEAM:      { cliffMonths: 17, linearMonths: 12, tgePct: 0 },
+    MARKETING: { cliffMonths: 9, linearMonths: 12,  tgePct: 0 },
+    ECOSYS:    { cliffMonths: 16, linearMonths: 0,  tgePct: 0 }
+  };
 
   // =====================
-  // 🧠 وضعیت برنامه (Front Demo)
+  // Web3 wiring (ready-to-wire)
   // =====================
   let provider, signer, user;
-  let payAsset = "USDT"; // یا "BNB"
+  let presale, vesting, usdt, token;
+  const ABI = {
+    // MINIMUM ABI PLACEHOLDERS — replace with your real ABIs
+    ERC20:[
+      "function decimals() view returns(uint8)",
+      "function balanceOf(address) view returns(uint256)",
+      "function allowance(address,address) view returns(uint256)",
+      "function approve(address spender,uint256 amount) returns(bool)"
+    ],
+    PRESALE:[
+      // views
+      "function currentStage() view returns(uint8)",
+      "function stageInfo(uint8) view returns(uint256 priceUSD, uint256 stageTokens, uint256 soldTokens)",
+      "function totalRaisedUSD() view returns(uint256)",
+      "function presaleEndedAt() view returns(uint256)",
+      // quotes
+      "function quoteTokensForUSD(uint256 usdAmount) view returns(uint256 tokens)",
+      "function quoteBNBForUSD(uint256 usdAmount) view returns(uint256 bnbWei)",
+      // actions
+      "function buyWithUSDT(uint256 usdAmount) payable",
+      "function buyWithBNB(uint256 usdAmount) payable"
+    ],
+    VESTING:[
+      "function claimable(address user) view returns(uint256)",
+      "function totalPurchased(address user) view returns(uint256)",
+      "function claimed(address user) view returns(uint256)",
+      "function tgeTimestamp() view returns(uint256)",
+      "function claim()"
+    ]
+  };
 
-  // برای دموی خرید، داده‌های کاربر را در localStorage نگه می‌داریم
-  const LS_KEY = "presale_demo";
+  function ethersReady(){ return typeof ethers !== 'undefined'; }
+  async function connect(){
+    if(!window.ethereum) { alert('No Web3 wallet found (MetaMask).'); return; }
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    const accounts = await provider.send('eth_requestAccounts', []);
+    signer = provider.getSigner();
+    user = accounts[0];
+    document.getElementById('btnConnect').textContent = short(user);
+
+    // Network check
+    const net = await provider.getNetwork();
+    if(Number(net.chainId) !== Number(CONFIG.network.chainId)){
+      try{
+        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x'+CONFIG.network.chainId.toString(16) }]);
+      }catch(e){ console.warn('switch failed', e); }
+    }
+
+    // Instantiate contracts if addresses provided
+    if(CONFIG.addresses.USDT){ usdt  = new ethers.Contract(CONFIG.addresses.USDT,  ABI.ERC20, signer); }
+    if(CONFIG.addresses.TOKEN){ token = new ethers.Contract(CONFIG.addresses.TOKEN, ABI.ERC20, signer); }
+    if(CONFIG.addresses.PRESALE_CONTRACT){ presale = new ethers.Contract(CONFIG.addresses.PRESALE_CONTRACT, ABI.PRESALE, signer); }
+    if(CONFIG.addresses.VESTING_CONTRACT){ vesting = new ethers.Contract(CONFIG.addresses.VESTING_CONTRACT, ABI.VESTING, signer); }
+
+    // Try to sync from-chain
+    try{ await syncFromChain(); } catch(e){ console.warn('sync failed:', e); }
+    renderUser();
+  }
+
+  async function syncFromChain(){
+    if(!presale) return;
+    // Pull current stage data
+    const stageId = (await presale.currentStage()).toNumber ? (await presale.currentStage()).toNumber() : await presale.currentStage();
+    const rows = [];
+    let totalRaised = 0;
+    for(let i=1; i<=STAGES.length; i++){
+      try{
+        const info = await presale.stageInfo(i);
+        // Expecting priceUSD with 1e2 (cents) or 1e6 — adjust as per your contract
+        const price = Number(ethers.utils.formatUnits(info.priceUSD, 2));
+        const stageTokens = Number(info.stageTokens);
+        const soldTokens  = Number(info.soldTokens);
+        STAGES[i-1].price = price; // update UI with on-chain values
+        STAGES[i-1].tokens = stageTokens;
+        STAGES[i-1].sold = soldTokens;
+        totalRaised += price * soldTokens;
+      }catch(e){ /* ignore gaps if not defined on-chain */ }
+    }
+    state.raisedUSD = totalRaised;
+
+    // Presale end time
+    try{
+      const t = await presale.presaleEndedAt();
+      if(t && t.toNumber && t.toNumber()>0){
+        state.presaleEndedAt = new Date(t.toNumber()*1000).toISOString();
+      }
+    }catch(e){}
+
+    renderStages();
+  }
+
+  // UI helpers & local demo state
+  const LS_KEY = "presale_live_demo";
   const state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
   if(!state.purchases){ state.purchases = {}; }
   if(!state.raisedUSD){ state.raisedUSD = 0; }
   if(!state.presaleEndedAt){ state.presaleEndedAt = null; }
 
-  // =====================
-  // 🧩 کمک‌تابع‌ها
-  // =====================
-  const $ = (sel)=>document.querySelector(sel);
-  const $$ = (sel)=>document.querySelectorAll(sel);
-  const fmt = (n)=>Number(n).toLocaleString("fa-IR");
-  const now = ()=> new Date();
+  const $ = (s)=>document.querySelector(s);
+  const $$ = (s)=>document.querySelectorAll(s);
+  const fmt = (n)=>Number(n).toLocaleString("en-US");
+  const short = (a)=> a ? `${a.slice(0,6)}…${a.slice(-4)}` : 'Not connected';
 
   function currentStageIndex(){
     for(let i=0;i<STAGES.length;i++){
       if(STAGES[i].sold < STAGES[i].tokens) return i;
     }
-    return STAGES.length-1; // اگر همه پر شد آخرین را برگردان
+    return STAGES.length-1;
   }
 
   function calcEstTokens(usd){
@@ -296,101 +396,189 @@
     return tokens;
   }
 
-  function buySimulate(usd, address){
+  // === Buy flow ===
+  let payAsset = "USDT";
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('.pay');
+    if(el){
+      $$('.pay').forEach(x=>{ x.className = 'pay px-4 py-3 rounded-xl border border-white/15'; x.setAttribute('aria-pressed','false') });
+      el.className = 'pay btn'; el.setAttribute('aria-pressed','true');
+      payAsset = el.dataset.pay;
+    }
+  });
+
+  $('#inpUsd').addEventListener('input', (e)=>{
+    const usd = Number(e.target.value||0);
+    $('#estTokens').textContent = fmt(calcEstTokens(usd).toFixed(2));
+  });
+
+  $('#btnBuy').addEventListener('click', async()=>{
+    const usd = Number($('#inpUsd').value||0);
+    if(!usd || usd < 1){ $('#buyMsg').textContent = 'Enter a valid amount.'; return; }
+
+    if(!CONFIG.addresses.PRESALE_CONTRACT){
+      // Demo fallback (no contract yet)
+      simulateBuy(usd);
+      $('#buyMsg').textContent = `✅ Simulated: ${fmt(usd)} USD.`;
+      renderStages(); renderUser();
+      return;
+    }
+
+    // Real on-chain flow
+    try{
+      if(!provider) await connect();
+      if(payAsset === 'USDT'){
+        // 1) Approve USDT
+        const usdtDec = await usdt.decimals();
+        const amount = ethers.utils.parseUnits(String(usd), usdtDec);
+        const allowance = await usdt.allowance(user, CONFIG.addresses.PRESALE_CONTRACT);
+        if(allowance.lt(amount)){
+          const txA = await usdt.approve(CONFIG.addresses.PRESALE_CONTRACT, amount);
+          await txA.wait();
+        }
+        // 2) Buy with USDT
+        const txB = await presale.buyWithUSDT(amount);
+        await txB.wait();
+        $('#buyMsg').textContent = '✅ Purchase completed on-chain.';
+      } else {
+        // BNB path: ask contract quote for BNB value corresponding to USD
+        const usdUnits = ethers.utils.parseUnits(String(usd), 2); // assuming price in cents; adjust per contract
+        const bnbWei = await presale.quoteBNBForUSD(usdUnits);
+        const txB = await presale.buyWithBNB(usdUnits, { value: bnbWei });
+        await txB.wait();
+        $('#buyMsg').textContent = '✅ Purchase completed on-chain.';
+      }
+      await syncFromChain();
+      renderStages(); renderUser();
+    }catch(err){ $('#buyMsg').textContent = 'Tx failed: ' + (err?.message||err); }
+  });
+
+  function simulateBuy(usd){
     let remaining = usd;
     for(const s of STAGES){
       const left = s.tokens - s.sold;
       if(left <= 0) continue;
-      const maxUsdInStage = left * s.price;
-      const takeUsd = Math.min(remaining, maxUsdInStage);
+      const maxUsd = left * s.price;
+      const takeUsd = Math.min(remaining, maxUsd);
       const takeTokens = takeUsd / s.price;
       s.sold += takeTokens;
       state.raisedUSD += takeUsd;
       remaining -= takeUsd;
       if(remaining <= 0) break;
     }
-    state.purchases[address] = (state.purchases[address]||0) + (usd - remaining)/STAGES[currentStageIndex()].price; // نزدیک‌سازی
+    const addr = user || 'demo';
+    state.purchases[addr] = (state.purchases[addr]||0) + calcEstTokens(usd);
     localStorage.setItem(LS_KEY, JSON.stringify(state));
   }
 
+  // === Claim ===
+  $('#btnClaim').addEventListener('click', async()=>{
+    if(!CONFIG.addresses.VESTING_CONTRACT){
+      // Demo: mark claim in local state
+      const addr = user || 'demo';
+      const v = calcUserVesting(addr);
+      if(v.claimable>0){
+        state.claimed = state.claimed||{};
+        state.claimed[addr] = (state.claimed[addr]||0) + v.claimable;
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        $('#claimMsg').textContent = `✅ Claimed ${fmt(v.claimable.toFixed(2))} (demo).`;
+        renderUser();
+      } else {
+        $('#claimMsg').textContent = 'Nothing claimable yet.';
+      }
+      return;
+    }
+    try{
+      if(!provider) await connect();
+      const tx = await vesting.claim();
+      await tx.wait();
+      $('#claimMsg').textContent = '✅ Claimed on-chain.';
+    }catch(err){ $('#claimMsg').textContent = 'Claim failed: '+(err?.message||err); }
+  });
+
+  // === Vesting math for buyers (UI) ===
   function calcUserVesting(address){
     const total = Number(state.purchases[address]||0);
     if(!total) return { total:0, unlocked:0, claimable:0, nextRelease:null };
 
-    // اگر presaleEndAt تعیین نشده
     const endAt = state.presaleEndedAt ? new Date(state.presaleEndedAt) : null;
     if(!endAt){ return { total, unlocked:0, claimable:0, nextRelease:null } }
 
     const v = CONFIG.vesting;
-    const tge = v.tgeUnlockPct * total; // 15%
+    const tge = v.tgeUnlockPct * total;
 
     const cliffEnd = new Date(endAt);
     cliffEnd.setMonth(cliffEnd.getMonth() + v.cliffMonths);
 
-    const monthly = v.postCliffMonthlyPctOfTotal * total; // ≈14.1667% کل
+    const monthly = v.postCliffMonthlyPctOfTotal * total;
 
     let unlocked = 0;
-    const nowTs = now();
+    const nowTs = new Date();
 
     if(nowTs >= endAt){ unlocked += tge; }
 
     if(nowTs >= cliffEnd){
-      // چند ماه بعد از کلیف گذشته؟
       let months = (nowTs.getFullYear()-cliffEnd.getFullYear())*12 + (nowTs.getMonth()-cliffEnd.getMonth());
-      // اگر روز ماه جاری هنوز نگذشته باشد، یک ماه کم کن
       if(nowTs.getDate() < cliffEnd.getDate()) months -= 1;
-      months = Math.max(0, Math.min(months+1, CONFIG.vesting.postCliffMonths));
+      months = Math.max(0, Math.min(months+1, v.postCliffMonths));
       unlocked += months * monthly;
     }
-
     unlocked = Math.min(unlocked, total);
-
-    // محاسبه next release
-    let nextRelease = null;
-    if(!endAt || unlocked >= total){
-      nextRelease = null;
-    } else if(nowTs < endAt){
-      nextRelease = endAt;
-    } else if(nowTs < cliffEnd){
-      nextRelease = cliffEnd;
-    } else {
-      // بعد از کلیف، نوبت ماه بعدی
-      const vMonths = CONFIG.vesting.postCliffMonths;
-      // تعداد قسط‌های گذشته
-      let played = Math.floor((unlocked - tge + 1e-9) / monthly);
-      if(unlocked <= tge) played = 0;
-      if(played < vMonths){
-        nextRelease = new Date(cliffEnd);
-        nextRelease.setMonth(nextRelease.getMonth() + played + 1);
-      }
-    }
 
     const claimed = Number(state.claimed?.[address]||0);
     const claimable = Math.max(0, unlocked - claimed);
 
+    // Next release label
+    let nextRelease = null;
+    if(!endAt || unlocked >= total){ nextRelease = null; }
+    else if(nowTs < endAt){ nextRelease = endAt; }
+    else {
+      const afterCliff = nowTs >= cliffEnd;
+      if(!afterCliff) nextRelease = cliffEnd; else {
+        let played = Math.floor((unlocked - tge + 1e-9) / monthly);
+        if(unlocked <= tge) played = 0;
+        if(played < v.postCliffMonths){
+          nextRelease = new Date(cliffEnd);
+          nextRelease.setMonth(nextRelease.getMonth() + played + 1);
+        }
+      }
+    }
+
     return { total, unlocked, claimable, nextRelease };
   }
 
+  // Demo button: end presale (start TGE)
+  const endBtn = document.createElement('button');
+  endBtn.className = 'mt-6 px-4 py-2 rounded-xl border border-white/15 text-sm';
+  endBtn.textContent = 'End Presale (Demo) & Start TGE';
+  endBtn.addEventListener('click', ()=>{
+    state.presaleEndedAt = new Date().toISOString();
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    renderUser();
+    alert('Presale ended (demo). 15% TGE unlocked.');
+  });
+  document.querySelector('#buy .card').appendChild(endBtn);
+
+  // === Rendering ===
   function renderHeader(){
     document.getElementById('projectName').textContent = CONFIG.projectName;
     document.getElementById('brand').textContent = CONFIG.projectName;
-    document.getElementById('tokenTicker').textContent = `نماد: ${CONFIG.symbol}`;
+    document.getElementById('tokenTicker').textContent = `Ticker: ${CONFIG.symbol}`;
     document.getElementById('heroToken').textContent = CONFIG.symbol;
-    document.getElementById('goalUSD').textContent = `${fmt(CONFIG.goalUSD)} دلار`;
-    document.getElementById('goalUSD2').textContent = `${fmt(CONFIG.goalUSD)} دلار`;
+    document.getElementById('goalUSD').textContent = `$${fmt(CONFIG.goalUSD)}`;
+    document.getElementById('goalUSD2').textContent = `$${fmt(CONFIG.goalUSD)}`;
     document.getElementById('goalTKN').textContent = `${fmt(CONFIG.totalPresaleTokens)} ${CONFIG.symbol}`;
     document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('networkBadge').textContent = `شبکه: ${CONFIG.network.name}`;
+    document.getElementById('networkBadge').textContent = `Network: ${CONFIG.network.name}`;
+    document.getElementById('symbolInline').textContent = CONFIG.symbol;
   }
 
   function renderStages(){
     const rows = document.getElementById('stageRows');
     rows.innerHTML = '';
-    let totalRaised = state.raisedUSD || 0;
     STAGES.forEach(s=>{
-      const raisedStage = (s.sold * s.price) || 0;
-      totalRaised += 0; // محاسبه بالاتر انجام شده
       const left = Math.max(0, s.tokens - s.sold);
+      const raisedStage = (s.sold * s.price) || 0;
       const tr = document.createElement('tr');
       tr.className = 'border-b border-white/10';
       tr.innerHTML = `
@@ -404,10 +592,9 @@
       rows.appendChild(tr);
     });
 
-    // کارت وضعیت بالا
     const idx = currentStageIndex();
     const active = STAGES[idx];
-    document.getElementById('currentStageLabel').textContent = `مرحله ${active.id}/${STAGES.length}`;
+    document.getElementById('currentStageLabel').textContent = `Stage ${active.id}/${STAGES.length}`;
     document.getElementById('currentPrice').textContent = active.price.toFixed(2);
     const left = Math.max(0, active.tokens - active.sold);
     const sold = Math.min(active.tokens, active.sold);
@@ -416,7 +603,6 @@
     document.getElementById('soldInStage').textContent = fmt(Math.floor(sold));
     document.getElementById('leftInStage').textContent = fmt(Math.floor(left));
 
-    // پیشرفت کل
     const raised = STAGES.reduce((sum,s)=> sum + s.sold*s.price, 0);
     const pctGoal = Math.min(100, (raised/CONFIG.goalUSD)*100);
     document.getElementById('raisedUSD').textContent = fmt(Math.floor(raised));
@@ -426,7 +612,7 @@
   function renderUser(){
     const addr = user || 'demo';
     const v = calcUserVesting(addr);
-    document.getElementById('youTotal').textContent = fmt(v.total.toFixed ? Number(v.total.toFixed(2)) : v.total);
+    document.getElementById('youTotal').textContent = fmt(Number(v.total.toFixed(2)));
     document.getElementById('youUnlocked').textContent = fmt(Number(v.unlocked.toFixed(2)));
     document.getElementById('youLocked').textContent = fmt(Number((v.total - v.unlocked).toFixed(2)));
     document.getElementById('youClaimable').textContent = fmt(Number(v.claimable.toFixed(2)));
@@ -437,16 +623,13 @@
     const lbl = document.getElementById('nextReleaseLabel');
     const cd = document.getElementById('countdown');
     if(v.nextRelease){
-      lbl.textContent = v.nextRelease.toLocaleDateString('fa-IR');
-      const ms = v.nextRelease - now();
+      lbl.textContent = v.nextRelease.toLocaleDateString('en-US');
+      const ms = v.nextRelease - new Date();
       if(ms > 0){
         const d = Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000);
-        cd.textContent = `${d} روز، ${h} ساعت، ${m} دقیقه`; 
+        cd.textContent = `${d}d ${h}h ${m}m`; 
       } else cd.textContent = "—";
-    } else {
-      lbl.textContent = '—';
-      cd.textContent = '—';
-    }
+    } else { lbl.textContent = '—'; cd.textContent = '—'; }
   }
 
   function renderTokenomics(){
@@ -455,124 +638,36 @@
     TOKENOMICS.forEach((t,i)=>{
       const el = document.createElement('div');
       el.className = 'p-4 rounded-xl bg-white/5 flex items-center justify-between';
-      el.innerHTML = `<span>${t.label}</span><b>${t.value}%</b>`;
+      el.innerHTML = `<span>${t.key}</span><div class="text-right"><b>${t.value}%</b><div class="soft text-xs">${t.note||''}</div></div>`;
       list.appendChild(el);
     });
 
     const ctx = document.getElementById('pie');
     const data = TOKENOMICS.map(t=>t.value);
-    const labels = TOKENOMICS.map(t=>t.label);
+    const labels = TOKENOMICS.map(t=>t.key);
     new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data }] }, options:{ plugins:{ legend:{ position:'bottom' }}}});
   }
 
-  // =====================
-  // 🎛️ رویدادها
-  // =====================
-  document.addEventListener('click', (e)=>{
-    const el = e.target.closest('.pay');
-    if(el){
-      $$('.pay').forEach(x=>{ x.className = 'pay px-4 py-3 rounded-xl border border-white/15'; x.setAttribute('aria-pressed','false') });
-      el.className = 'pay btn'; el.setAttribute('aria-pressed','true');
-      payAsset = el.dataset.pay;
-    }
-  });
-
-  document.getElementById('inpUsd').addEventListener('input', (e)=>{
-    const usd = Number(e.target.value||0);
-    const est = calcEstTokens(usd);
-    document.getElementById('estTokens').textContent = fmt(est.toFixed(2));
-  });
-
-  document.getElementById('btnBuy').addEventListener('click', async()=>{
-    const usd = Number(document.getElementById('inpUsd').value||0);
-    if(!usd || usd < 1){ document.getElementById('buyMsg').textContent = 'مبلغ معتبر وارد کنید.'; return; }
-
-    if(!CONFIG.addresses.PRESALE_CONTRACT){
-      // حالت دمو: فقط محاسبات و به‌روزرسانی جدول
-      const addr = user || 'demo';
-      buySimulate(usd, addr);
-      document.getElementById('buyMsg').textContent = `✅ خرید شبیه‌سازی شد. مبلغ ${fmt(usd)} USD ثبت شد.`;
-      renderStages(); renderUser();
-      return;
-    }
-
-    // حالت واقعی (پس از پر کردن آدرس‌ها و ABI)
-    try{
-      if(!provider){ await connect(); }
-      // TODO: 
-      // 1) اگر payAsset==USDT: 
-      //    - approve(USDT -> PRESALE_CONTRACT, usd * 10**decimals)
-      //    - presaleContract.buyWithUSDT(usdAmount)
-      // 2) اگر payAsset==BNB:
-      //    - presaleContract.buyWithBNB({ value: ethers.utils.parseEther(bnbValue) })
-      document.getElementById('buyMsg').textContent = '⚠️ برای فعال‌سازی خرید واقعی، آدرس قرارداد/USDT و ABI را در کد وارد کنید.';
-    }catch(err){
-      document.getElementById('buyMsg').textContent = 'خطا در تراکنش: ' + (err?.message||err);
-    }
-  });
-
-  document.getElementById('btnClaim').addEventListener('click', async()=>{
-    if(!CONFIG.addresses.PRESALE_CONTRACT){
-      // دمو: Claim = افزودن به claimed محلی
-      const addr = user || 'demo';
-      const v = calcUserVesting(addr);
-      if(v.claimable>0){
-        state.claimed = state.claimed||{};
-        state.claimed[addr] = (state.claimed[addr]||0) + v.claimable;
-        localStorage.setItem(LS_KEY, JSON.stringify(state));
-        document.getElementById('claimMsg').textContent = `✅ ${fmt(v.claimable.toFixed(2))} توکن Claim شد (دمو).`;
-        renderUser();
-      } else {
-        document.getElementById('claimMsg').textContent = 'هنوز توکنی قابل Claim نیست.';
-      }
-      return;
-    }
-    // حالت واقعی: فراخوانی متد claim() قرارداد
-    document.getElementById('claimMsg').textContent = '⚠️ برای Claim واقعی، ABI/Address قرارداد را تنظیم کنید.';
-  });
-
-  // دکمه پایان پیش‌فروش (برای دمو)
-  const endBtn = document.createElement('button');
-  endBtn.className = 'mt-6 px-4 py-2 rounded-xl border border-white/15 text-sm';
-  endBtn.textContent = 'پایان پیش‌فروش (دمو) و شروع TGE';
-  endBtn.addEventListener('click', ()=>{
-    state.presaleEndedAt = new Date().toISOString();
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-    renderUser();
-    alert('پیش‌فروش در حالت دمو پایان یافت. ۱۵٪ TGE آزاد شد.');
-  });
-  document.querySelector('#buy .card').appendChild(endBtn);
-
-  // اتصال کیف پول
-  async function connect(){
-    if(!window.ethereum){ alert('کیف پول Web3 در مرورگر یافت نشد (MetaMask).'); return; }
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await provider.send('eth_requestAccounts', []);
-    signer = provider.getSigner();
-    user = accounts[0];
-    document.getElementById('btnConnect').textContent = userShort(user);
-
-    // بررسی شبکه
-    const net = await provider.getNetwork();
-    if(Number(net.chainId) !== Number(CONFIG.network.chainId)){
-      try{
-        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x'+CONFIG.network.chainId.toString(16) }]);
-      }catch(e){ console.warn('switch failed', e); }
-    }
-    renderUser();
-  }
-
-  function userShort(a){ return a ? `${a.slice(0,6)}…${a.slice(-4)}` : 'متصل نیست'; }
+  // Events
   document.getElementById('btnConnect').addEventListener('click', connect);
-
-  // رندر اولیه
-  renderHeader();
-  renderStages();
-  renderUser();
-  renderTokenomics();
-
-  // تایمر شمارش برای آپدیت کنت‌داون
   setInterval(()=> renderUser(), 30_000);
+
+  // Initial render
+  function boot(){
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('projectName').textContent = CONFIG.projectName;
+    document.getElementById('brand').textContent = CONFIG.projectName;
+    document.getElementById('tokenTicker').textContent = `Ticker: ${CONFIG.symbol}`;
+    document.getElementById('heroToken').textContent = CONFIG.symbol;
+    document.getElementById('goalUSD').textContent = `$${fmt(CONFIG.goalUSD)}`;
+    document.getElementById('goalUSD2').textContent = `$${fmt(CONFIG.goalUSD)}`;
+    document.getElementById('goalTKN').textContent = `${fmt(CONFIG.totalPresaleTokens)} ${CONFIG.symbol}`;
+    document.getElementById('networkBadge').textContent = `Network: ${CONFIG.network.name}`;
+    renderStages();
+    renderUser();
+    renderTokenomics();
+  }
+  boot();
 
   </script>
 </body>
