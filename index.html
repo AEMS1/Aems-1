@@ -1,674 +1,799 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Token Presale | Professional Dashboard</title>
-  <!-- TailwindCSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <!-- Ethers.js for real wallet connection -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <!-- Chart.js for Tokenomics -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    :root{ --bg:#0b1020; --card:#111735; --muted:#9aa4bf; --brand:#22d3ee; --brand2:#3b82f6; }
-    *{ font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial }
-    body{ background:radial-gradient(80rem 40rem at 80% -10%,rgba(59,130,246,.15),transparent),
-                     radial-gradient(60rem 30rem at -10% -20%,rgba(34,211,238,.18),transparent),
-                     var(--bg); color:#e6e9f5; }
-    .card{ background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01)); border:1px solid rgba(255,255,255,.08); border-radius:1.25rem; box-shadow:0 10px 40px rgba(0,0,0,.45); }
-    .btn{ background:linear-gradient(90deg,var(--brand),var(--brand2)); border-radius:1rem; padding:.9rem 1.2rem; font-weight:800; color:white; }
-    .btn[disabled]{ opacity:.5; cursor:not-allowed; }
-    .soft{ color:var(--muted); }
-    .kbd{ background:#0b122b; border:1px solid rgba(255,255,255,.08); border-radius:.5rem; padding:.2rem .45rem; font-size:.9rem; }
-    .progress{ height:.625rem; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
-    .progress > span{ display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--brand2)); }
-    .pill{ padding:.25rem .6rem; border-radius:999px; border:1px solid rgba(255,255,255,.15); font-size:.75rem }
-    .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cryptomaster</title>
+
+<!-- Modern font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+
+<style>
+  /* Reset and base styles */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0;
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    background: #121d40;
+    color: #eee;
+    overflow-x: hidden;
+  }
+
+  /* Particle canvas full screen */
+  #particle-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Main container with grid layout */
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 1000px;
+    margin: 40px auto;
+    background: rgba(22, 34, 62, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 0 40px #5a95ffaa;
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 32px;
+    padding: 30px 35px;
+    min-height: 600px;
+  }
+
+  /* Responsive for smaller screens */
+  @media (max-width: 720px) {
+    .container {
+      grid-template-columns: 1fr;
+      margin: 20px;
+      padding: 20px 15px;
+      min-height: auto;
+    }
+  }
+
+  /* Chart panel styling */
+  .chart-panel {
+    background: #1e2a5a;
+    border-radius: 18px;
+    padding: 25px 30px;
+    box-shadow: inset 0 0 25px #5a95ff55;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .chart-panel h2 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 22px;
+    color: #7cc1ff;
+    text-shadow: 0 0 8px #7cc1ffcc;
+  }
+  #lineChart {
+    width: 100% !important;
+    max-height: 360px;
+  }
+
+  /* Swap panel styling */
+  .swap-panel {
+    background: #1e2a4a;
+    border-radius: 18px;
+    padding: 30px 25px;
+    box-shadow: inset 0 0 25px #ff5a5a55;
+    display: flex;
+    flex-direction: column;
+    color: #ddd;
+  }
+  .swap-panel h2 {
+    font-weight: 700;
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    color: #ff5a5a;
+    text-align: center;
+    text-shadow: 0 0 8px #ff5a5aaa;
+  }
+  #walletInfo {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #f2b636;
+    text-align: center;
+    margin-bottom: 14px;
+    min-height: 1.5em;
+    word-break: break-word;
+  }
+  button, select, input {
+    font-family: 'Inter', sans-serif;
+    border-radius: 12px;
+    border: none;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    color: #222;
+  }
+  select {
+    background: #7cc1ff;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 0 18px #7cc1ff88;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: 95% center;
+    background-size: 18px;
+  }
+  input[type=number] {
+    background: #ff5a5a;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 0 18px #ff5a5a88;
+  }
+  button#connectWallet {
+    background: linear-gradient(90deg, #7cc1ff, #2b67ff);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 0 25px #7cc1ffaa;
+  }
+  button#connectWallet:hover {
+    background: linear-gradient(90deg, #2b67ff, #7cc1ff);
+    box-shadow: 0 0 35px #7cc1ffcc;
+    transform: scale(1.07);
+  }
+  button#swap {
+    background: linear-gradient(90deg, #ff5a5a, #ff3636);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 0 25px #ff5a5aaa;
+  }
+  button#swap:hover:not(:disabled) {
+    background: linear-gradient(90deg, #ff3636, #ff5a5a);
+    box-shadow: 0 0 35px #b82c2ccc;
+    transform: scale(1.07);
+  }
+  button#swap:disabled {
+    background: rgba(255, 90, 90, 0.45);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+  #priceFeed {
+    text-align: center;
+    font-weight: 600;
+    color: #f2b636;
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+    min-height: 1.3em;
+  }
+  #balances {
+    color: #61ffa2;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+    text-align: center;
+    min-height: 1.5em;
+  }
+  #liquidityLink {
+    margin-top: auto;
+    text-align: center;
+  }
+  #liquidityLink a {
+    color: #7cc1ff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  #liquidityLink a:hover {
+    text-decoration: underline;
+  }
+
+  /* Modal for adding custom token */
+  #customTokenModal {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: linear-gradient(135deg, #7cc1ffdd, #2b67ffdd);
+    border-radius: 22px;
+    box-shadow: 0 0 45px #2b67ffcc;
+    width: 340px;
+    max-width: 90vw;
+    padding: 30px 35px;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    color: #000;
+  }
+  #customTokenModal.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  #customTokenModal h3 {
+    margin-bottom: 25px;
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  #customTokenModal input[type=text] {
+    width: 100%;
+    padding: 12px 18px;
+    font-size: 1rem;
+    border-radius: 14px;
+    border: none;
+    outline: none;
+    margin-bottom: 22px;
+    box-shadow: inset 0 0 18px #2b67ffaa;
+  }
+  #customTokenModal button {
+    background: #ff5a5a;
+    color: white;
+    font-weight: 700;
+    padding: 14px 0;
+    border-radius: 14px;
+    width: 100%;
+    box-shadow: 0 0 25px #ff5a5aaa;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #customTokenModal button:hover {
+    background: #ff3636;
+  }
+  #customTokenModal button.cancel-btn {
+    background: #2b67ff;
+    margin-top: 12px;
+    box-shadow: 0 0 25px #2b67ffcc;
+  }
+  #customTokenModal button.cancel-btn:hover {
+    background: #1448c9;
+  }
+</style>
 </head>
 <body>
-  <!-- Header -->
-  <header class="sticky top-0 z-40 backdrop-blur bg-black/25 border-b border-white/10">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500"></div>
-        <div>
-          <h1 id="projectName" class="text-xl font-extrabold">YourToken</h1>
-          <p id="tokenTicker" class="text-xs soft">Ticker: MTK</p>
-        </div>
-      </div>
-      <div class="ms-auto flex items-center gap-3">
-        <span id="networkBadge" class="text-xs soft hidden md:inline"></span>
-        <button id="btnConnect" class="btn">Connect Wallet</button>
-      </div>
-    </div>
-  </header>
 
-  <!-- Hero -->
-  <section class="max-w-7xl mx-auto px-4 pt-10 grid md:grid-cols-2 gap-8 items-center">
-    <div>
-      <h2 class="text-3xl md:text-5xl font-extrabold leading-[1.15]">Official <span id="heroToken" class="text-cyan-300">MTK</span> Presale</h2>
-      <p id="projectPitch" class="soft mt-4">Multi-stage presale with gently increasing prices. Secure on-chain vesting: 15% TGE, 6-month cliff, then monthly release until fully unlocked.</p>
-      <div class="mt-6 flex gap-3">
-        <a href="#buy" class="btn">Buy Tokens</a>
-        <a href="#stages" class="px-4 py-3 rounded-xl border border-white/15">View Stages</a>
-      </div>
-      <div class="mt-6 text-sm soft">Total raise target: <span id="goalUSD" class="font-bold text-white"></span>
-        · Presale allocation: <span id="goalTKN" class="font-bold text-white"></span>
-      </div>
-    </div>
-    <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-4">Live Presale Status</h3>
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div class="p-4 rounded-xl bg-white/5">
-          <div class="soft">Current Stage</div>
-          <div class="text-2xl font-extrabold" id="currentStageLabel">—</div>
-        </div>
-        <div class="p-4 rounded-xl bg-white/5">
-          <div class="soft">Current Price</div>
-          <div class="text-2xl font-extrabold"><span id="currentPrice">—</span> <span class="text-base">USD</span></div>
-        </div>
-        <div class="col-span-2 p-4 rounded-xl bg-white/5">
-          <div class="soft mb-2">Stage Progress</div>
-          <div class="progress"><span id="stageProgress" style="width:0%"></span></div>
-          <div class="flex justify-between text-xs soft mt-1"><span>Sold: <span id="soldInStage">0</span></span><span>Left: <span id="leftInStage">0</span></span></div>
-        </div>
-        <div class="col-span-2 p-4 rounded-xl bg-white/5">
-          <div class="soft mb-1">Total Raised</div>
-          <div class="progress"><span id="totalProgress" style="width:0%"></span></div>
-          <div class="flex justify-between text-xs soft mt-1"><span>Raised (USD): <span id="raisedUSD">0</span></span><span>Target: <span id="goalUSD2">0</span></span></div>
-        </div>
-      </div>
-    </div>
+<canvas id="particle-canvas"></canvas>
+
+<div class="container">
+  <!-- Chart Panel -->
+  <section class="chart-panel">
+    <h2>Price Chart (Last 24h)</h2>
+    <canvas id="lineChart" aria-label="Price chart" role="img"></canvas>
   </section>
 
-  <!-- Stages Table -->
-  <section id="stages" class="max-w-7xl mx-auto px-4 pt-12">
-    <div class="flex items-end justify-between mb-4">
-      <h3 class="text-2xl md:text-3xl font-extrabold">Presale Stages</h3>
-      <span class="soft text-sm">* When a stage sells out, the next stage auto-activates</span>
+  <!-- Swap Panel -->
+  <section class="swap-panel" aria-label="Swap Panel">
+    <h2>Cryptomaster</h2>
+
+    <div id="walletInfo" aria-live="polite">Not connected friend</div>
+    <button id="connectWallet" aria-label="Connect Wallet Button">Connect Wallet</button>
+
+    <label for="tokenFrom">From:</label>
+    <select id="tokenFrom" aria-describedby="balanceFromDesc">
+      <option value="busd">BUSD</option>
+      <option value="usdt">USDT</option>
+      <option value="bnb">BNB</option>
+      <option value="custom">Add Custom Token</option>
+    </select>
+    <div id="balanceFromDesc" style="font-size: 0.85rem; color: #a0c9ff; margin-bottom: 12px;">Balance: <span id="balanceFrom">0</span></div>
+
+    <label for="tokenTo">To:</label>
+    <select id="tokenTo" aria-describedby="balanceToDesc">
+      <option value="usdt">USDT</option>
+      <option value="busd">BUSD</option>
+      <option value="bnb">BNB</option>
+      <option value="ADA">ADA</option>
+      <option value="custom">Add Custom Token</option>
+    </select>
+    <div id="balanceToDesc" style="font-size: 0.85rem; color: #a0c9ff; margin-bottom: 12px;">Balance: <span id="balanceTo">0</span></div>
+
+    <label for="amountFrom">Amount:</label>
+    <input id="amountFrom" type="number" min="0" step="any" placeholder="Enter amount" aria-describedby="balanceFromDesc" />
+
+    <div id="priceFeed" aria-live="polite"></div>
+
+    <button id="swap" disabled aria-label="Swap Tokens Button">Swap</button>
+
+    <div id="balances"></div>
+
+    <div id="liquidityLink">
+      <a href="add-liquidity.html">
+        ➕ Add liquidity & list your token
+      </a>
     </div>
-    <div class="overflow-x-auto card p-0">
-      <table class="min-w-full">
-        <thead class="bg-white/10 text-sm">
-          <tr>
-            <th class="text-left p-3">#</th>
-            <th class="text-left p-3">Price (USD)</th>
-            <th class="text-left p-3">Stage Tokens</th>
-            <th class="text-left p-3">Sold</th>
-            <th class="text-left p-3">Left</th>
-            <th class="text-left p-3">Raised (USD)</th>
-          </tr>
-        </thead>
-        <tbody id="stageRows" class="text-sm"></tbody>
-      </table>
-    </div>
-  </section>
+    
 
-  <!-- Buy -->
-  <section id="buy" class="max-w-7xl mx-auto px-4 pt-12 grid md:grid-cols-2 gap-8 items-start">
-    <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-1">Buy Tokens</h3>
-      <p class="soft mb-4 text-sm">Pay in USDT or BNB. The system automatically splits your order across stages if needed.</p>
+<!-- Modal for adding custom token -->
+<div id="customTokenModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+  <h3 id="modalTitle">Add Custom Token</h3>
+  <input type="text" id="customTokenAddress" placeholder="Enter token contract address" aria-describedby="modalDesc" />
+  <button id="addCustomTokenBtn">Add Token</button>
+  <button class="cancel-btn" id="cancelCustomTokenBtn">Cancel</button>
+</div>
 
-      <label class="block text-sm mb-1">Payment Asset</label>
-      <div class="flex gap-2 mb-4">
-        <button data-pay="USDT" class="pay btn" aria-pressed="true">USDT</button>
-        <button data-pay="BNB" class="pay px-4 py-3 rounded-xl border border-white/15">BNB</button>
-      </div>
+<script>
+  // Particle effect
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let particlesArray = [];
+  let width, height;
 
-      <label class="block text-sm mb-1">Amount (USD)</label>
-      <input id="inpUsd" type="number" min="1" step="1" placeholder="e.g. 1000" class="w-full bg-black/30 border border-white/10 rounded-xl p-3 mb-3 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+  function initCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  initCanvas();
 
-      <div class="text-xs soft mb-3">Estimated tokens: <span id="estTokens" class="text-white font-bold">0</span> <span id="symbolInline">MTK</span></div>
-
-      <button id="btnBuy" class="btn w-full">Buy</button>
-      <div id="buyMsg" class="soft text-sm mt-3"></div>
-
-      <div class="mt-4 text-xs soft">Once contract addresses & ABIs are set, this button performs a real on-chain transaction.</div>
-    </div>
-
-    <!-- User Dashboard / Vesting -->
-    <div class="card p-6">
-      <h3 class="font-extrabold text-xl mb-1">Your Dashboard</h3>
-      <p class="soft text-sm mb-4">Unlocks start automatically when presale ends.</p>
-
-      <div class="grid grid-cols-2 gap-4 text-sm">
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Your Total</div><div class="text-2xl font-extrabold" id="youTotal">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Unlocked</div><div class="text-2xl font-extrabold" id="youUnlocked">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Locked</div><div class="text-2xl font-extrabold" id="youLocked">0</div></div>
-        <div class="p-4 rounded-xl bg-white/5"><div class="soft">Claimable Now</div><div class="text-2xl font-extrabold" id="youClaimable">0</div></div>
-      </div>
-
-      <div class="mt-4">
-        <div class="soft text-xs mb-1">Next release</div>
-        <div class="p-3 rounded-xl bg-white/5 text-sm flex items-center gap-3">
-          <span class="kbd" id="nextReleaseLabel">—</span>
-          <span class="soft" id="countdown">—</span>
-        </div>
-      </div>
-
-      <button id="btnClaim" class="btn w-full mt-4" disabled>Claim</button>
-      <div id="claimMsg" class="soft text-sm mt-3"></div>
-
-      <div class="mt-4 text-xs soft">Presale buyers vesting: <b>15% TGE</b> · <b>6-month cliff</b> · then monthly linear until 100%.</div>
-    </div>
-  </section>
-
-  <!-- Tokenomics -->
-  <section id="tokenomics" class="max-w-7xl mx-auto px-4 pt-14">
-    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">Tokenomics</h3>
-    <div class="card p-6 mb-6">
-      <p class="soft text-sm">Distribution & vesting rules (editable in <span class="kbd">TOKENOMICS</span> and <span class="kbd">CATEGORY_VESTING</span> objects below).</p>
-    </div>
-    <div class="grid lg:grid-cols-3 gap-8">
-      <div class="card p-6">
-        <canvas id="pie"></canvas>
-      </div>
-      <div class="lg:col-span-2 card p-6">
-        <div id="tokenomicsList" class="grid sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Roadmap -->
-  <section id="roadmap" class="max-w-7xl mx-auto px-4 pt-14">
-    <h3 class="text-2xl md:text-3xl font-extrabold mb-4">Roadmap</h3>
-    <div class="card p-6">
-      <ol class="relative border-s border-white/10 ps-6 space-y-6">
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Presale launch, website & whitepaper</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Presale end (TGE + listing prep)</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Add liquidity, LP lock, start 6-month cliff</li>
-        <li><span class="absolute -start-3 top-1.5 w-2 h-2 rounded-full bg-cyan-400"></span> Monthly releases & ecosystem growth</li>
-      </ol>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="max-w-7xl mx-auto px-4 py-12 soft text-sm">
-    <div class="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-      <div>© <span id="year"></span> <span id="brand">YourToken</span> — All rights reserved.</div>
-      <div class="flex gap-4">
-        <a class="underline" href="#">Telegram</a>
-        <a class="underline" href="#">X (Twitter)</a>
-        <a class="underline" href="#">Discord</a>
-        <a class="underline" href="#">Whitepaper</a>
-      </div>
-    </div>
-  </footer>
-
-  <script>
-  // =====================
-  // ⚙️ Editable Configuration
-  // =====================
-  const CONFIG = {
-    projectName: "YourToken",
-    symbol: "MTK",
-    decimals: 18,
-    network: { chainId: 56, name: "BSC Mainnet" }, // 56 mainnet, 97 testnet
-    goalUSD: 8_000_000,
-    totalPresaleTokens: 26_000_000,
-    targetListingUSD: 0.45,
-    // Presale buyers vesting
-    vesting: {
-      tgeUnlockPct: 0.15,       // 15% at TGE
-      cliffMonths: 6,           // 6-month cliff
-      postCliffMonths: 6,       // linear months after cliff
-      postCliffMonthlyPctOfTotal: 0.85/6
-    },
-    // Addresses (FILL AFTER DEPLOY)
-    addresses: {
-      PRESALE_CONTRACT: "", // e.g. 0x...
-      VESTING_CONTRACT: "", // e.g. 0x...
-      TOKEN: "",            // e.g. 0x...
-      USDT: ""              // USDT on the same chain
+  class Particle {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.size = Math.random() * 3 + 1;
+      this.speedX = (Math.random() - 0.5) * 1;
+      this.speedY = (Math.random() - 0.5) * 1;
+      this.color = 'rgba(124, 193, 255, 0.8)';
     }
-  };
-
-  // Stages (8 main + 1 bonus) — total 26,000,000 tokens and ≈ $8,004,000
-  const STAGES = [
-    { id:1, price:0.15, tokens:4_000_000, sold:0 },
-    { id:2, price:0.20, tokens:3_800_000, sold:0 },
-    { id:3, price:0.25, tokens:3_600_000, sold:0 },
-    { id:4, price:0.28, tokens:3_400_000, sold:0 },
-    { id:5, price:0.32, tokens:3_200_000, sold:0 },
-    { id:6, price:0.34, tokens:3_000_000, sold:0 },
-    { id:7, price:0.36, tokens:2_800_000, sold:0 },
-    { id:8, price:0.40, tokens:2_200_000, sold:0 },
-    { id:9, price:0.43, tokens:2_000_000, sold:0 }
-  ];
-
-  // Tokenomics (as requested)
-  const TOKENOMICS = [
-    { key:"Presale", value:26, note:"Public presale allocation" },
-    { key:"Exchange Liquidity", value:12, note:"LP on DEX/CEX" },
-    { key:"Community Rewards", value:15, note:"Staking · Competitions · Polls" },
-    { key:"Project Development", value:20, note:"Build & operations" },
-    { key:"Team", value:5, note:"17-month lock, monthly unlocks" },
-    { key:"Marketing", value:17, note:"Campaigns & KOLs" },
-    { key:"Ecosystem Reserve", value:5, note:"16-month lock, then release" }
-  ];
-
-  // Category vesting rules (for contracts; UI info only here)
-  // Assumptions where unspecified:
-  // - Community Rewards: 6-month cliff, then linear monthly over 12 months
-  // - Team: 17-month cliff, then linear monthly over 12 months
-  // - Marketing: 9-month cliff, then linear monthly over 12 months
-  // - Ecosystem Reserve: 16-month cliff, then 100% release (no linear)
-  const CATEGORY_VESTING = {
-    COMMUNITY: { cliffMonths: 6, linearMonths: 12, tgePct: 0 },
-    TEAM:      { cliffMonths: 17, linearMonths: 12, tgePct: 0 },
-    MARKETING: { cliffMonths: 9, linearMonths: 12,  tgePct: 0 },
-    ECOSYS:    { cliffMonths: 16, linearMonths: 0,  tgePct: 0 }
-  };
-
-  // =====================
-  // Web3 wiring (ready-to-wire)
-  // =====================
-  let provider, signer, user;
-  let presale, vesting, usdt, token;
-  const ABI = {
-    // MINIMUM ABI PLACEHOLDERS — replace with your real ABIs
-    ERC20:[
-      "function decimals() view returns(uint8)",
-      "function balanceOf(address) view returns(uint256)",
-      "function allowance(address,address) view returns(uint256)",
-      "function approve(address spender,uint256 amount) returns(bool)"
-    ],
-    PRESALE:[
-      // views
-      "function currentStage() view returns(uint8)",
-      "function stageInfo(uint8) view returns(uint256 priceUSD, uint256 stageTokens, uint256 soldTokens)",
-      "function totalRaisedUSD() view returns(uint256)",
-      "function presaleEndedAt() view returns(uint256)",
-      // quotes
-      "function quoteTokensForUSD(uint256 usdAmount) view returns(uint256 tokens)",
-      "function quoteBNBForUSD(uint256 usdAmount) view returns(uint256 bnbWei)",
-      // actions
-      "function buyWithUSDT(uint256 usdAmount) payable",
-      "function buyWithBNB(uint256 usdAmount) payable"
-    ],
-    VESTING:[
-      "function claimable(address user) view returns(uint256)",
-      "function totalPurchased(address user) view returns(uint256)",
-      "function claimed(address user) view returns(uint256)",
-      "function tgeTimestamp() view returns(uint256)",
-      "function claim()"
-    ]
-  };
-
-  function ethersReady(){ return typeof ethers !== 'undefined'; }
-  async function connect(){
-    if(!window.ethereum) { alert('No Web3 wallet found (MetaMask).'); return; }
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await provider.send('eth_requestAccounts', []);
-    signer = provider.getSigner();
-    user = accounts[0];
-    document.getElementById('btnConnect').textContent = short(user);
-
-    // Network check
-    const net = await provider.getNetwork();
-    if(Number(net.chainId) !== Number(CONFIG.network.chainId)){
-      try{
-        await provider.send('wallet_switchEthereumChain', [{ chainId: '0x'+CONFIG.network.chainId.toString(16) }]);
-      }catch(e){ console.warn('switch failed', e); }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if(this.x < 0 || this.x > width) this.speedX *= -1;
+      if(this.y < 0 || this.y > height) this.speedY *= -1;
     }
-
-    // Instantiate contracts if addresses provided
-    if(CONFIG.addresses.USDT){ usdt  = new ethers.Contract(CONFIG.addresses.USDT,  ABI.ERC20, signer); }
-    if(CONFIG.addresses.TOKEN){ token = new ethers.Contract(CONFIG.addresses.TOKEN, ABI.ERC20, signer); }
-    if(CONFIG.addresses.PRESALE_CONTRACT){ presale = new ethers.Contract(CONFIG.addresses.PRESALE_CONTRACT, ABI.PRESALE, signer); }
-    if(CONFIG.addresses.VESTING_CONTRACT){ vesting = new ethers.Contract(CONFIG.addresses.VESTING_CONTRACT, ABI.VESTING, signer); }
-
-    // Try to sync from-chain
-    try{ await syncFromChain(); } catch(e){ console.warn('sync failed:', e); }
-    renderUser();
+    draw() {
+      ctx.beginPath();
+      ctx.fillStyle = this.color;
+      ctx.shadowColor = '#7cc1ff';
+      ctx.shadowBlur = 10;
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+      ctx.fill();
+    }
   }
 
-  async function syncFromChain(){
-    if(!presale) return;
-    // Pull current stage data
-    const stageId = (await presale.currentStage()).toNumber ? (await presale.currentStage()).toNumber() : await presale.currentStage();
-    const rows = [];
-    let totalRaised = 0;
-    for(let i=1; i<=STAGES.length; i++){
-      try{
-        const info = await presale.stageInfo(i);
-        // Expecting priceUSD with 1e2 (cents) or 1e6 — adjust as per your contract
-        const price = Number(ethers.utils.formatUnits(info.priceUSD, 2));
-        const stageTokens = Number(info.stageTokens);
-        const soldTokens  = Number(info.soldTokens);
-        STAGES[i-1].price = price; // update UI with on-chain values
-        STAGES[i-1].tokens = stageTokens;
-        STAGES[i-1].sold = soldTokens;
-        totalRaised += price * soldTokens;
-      }catch(e){ /* ignore gaps if not defined on-chain */ }
+  function createParticles(num=80) {
+    particlesArray = [];
+    for(let i=0; i<num; i++) {
+      particlesArray.push(new Particle());
     }
-    state.raisedUSD = totalRaised;
+  }
 
-    // Presale end time
-    try{
-      const t = await presale.presaleEndedAt();
-      if(t && t.toNumber && t.toNumber()>0){
-        state.presaleEndedAt = new Date(t.toNumber()*1000).toISOString();
+  function animateParticles() {
+    ctx.clearRect(0,0,width,height);
+    particlesArray.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+
+  createParticles();
+  animateParticles();
+
+  window.addEventListener('resize', () => {
+    initCanvas();
+    createParticles();
+  });
+
+  // Chart.js setup
+  const ctxChart = document.getElementById('lineChart').getContext('2d');
+  let lineChart = null;
+
+  // Dummy price data for 24h (can replace with real API)
+  let prices = [];
+  let labels = [];
+  function generateDummyData() {
+    prices = [];
+    labels = [];
+    let basePrice = 1;
+    for(let i=0; i<24; i++) {
+      basePrice += (Math.random() - 0.5) * 0.02;
+      prices.push(parseFloat(basePrice.toFixed(4)));
+      labels.push(i + ":00");
+    }
+  }
+
+  function drawChart() {
+    if(lineChart) lineChart.destroy();
+    lineChart = new Chart(ctxChart, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Token Price',
+          data: prices,
+          borderColor: '#7cc1ff',
+          backgroundColor: 'rgba(124, 193, 255, 0.3)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              color: '#a0c9ff'
+            },
+            grid: {
+              color: '#2b67ff55'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#a0c9ff'
+            },
+            grid: {
+              color: '#2b67ff33'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#7cc1ff',
+              font: { weight: 'bold' }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            backgroundColor: '#2b67ffdd',
+            titleColor: '#fff',
+            bodyColor: '#ddd',
+          }
+        }
       }
-    }catch(e){}
-
-    renderStages();
+    });
   }
 
-  // UI helpers & local demo state
-  const LS_KEY = "presale_live_demo";
-  const state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
-  if(!state.purchases){ state.purchases = {}; }
-  if(!state.raisedUSD){ state.raisedUSD = 0; }
-  if(!state.presaleEndedAt){ state.presaleEndedAt = null; }
+  generateDummyData();
+  drawChart();
 
-  const $ = (s)=>document.querySelector(s);
-  const $$ = (s)=>document.querySelectorAll(s);
-  const fmt = (n)=>Number(n).toLocaleString("en-US");
-  const short = (a)=> a ? `${a.slice(0,6)}…${a.slice(-4)}` : 'Not connected';
+  // Web3 & Swap logic
 
-  function currentStageIndex(){
-    for(let i=0;i<STAGES.length;i++){
-      if(STAGES[i].sold < STAGES[i].tokens) return i;
-    }
-    return STAGES.length-1;
+  let web3;
+  let userAccount = null;
+
+  // Token list and their dummy prices (in USD)
+  const tokenList = {
+    busd: { symbol: 'BUSD', address: '0xe9e7cea3dedca5984780bafc599bd69add087d56', decimals: 18, priceUSD: 1.00 },
+    ada: { symbol: 'ADA', address: '0x55d398326f99059ff775485246999027b3197955', decimals: 18, priceUSD: 3.00 },
+    usdt: { symbol: 'USDT', address: '0x55d398326f99059ff775485246999027b3197955', decimals: 18, priceUSD: 1.00 },
+    bnb: { symbol: 'BNB', address: 'native', decimals: 18, priceUSD: 350.00 },
+  };
+
+  // Custom tokens storage (address => token info)
+  let customTokens = {};
+
+  // Elements
+  const connectWalletBtn = document.getElementById('connectWallet');
+  const walletInfo = document.getElementById('walletInfo');
+  const tokenFromSelect = document.getElementById('tokenFrom');
+  const tokenToSelect = document.getElementById('tokenTo');
+  const amountFromInput = document.getElementById('amountFrom');
+  const swapBtn = document.getElementById('swap');
+  const priceFeedDiv = document.getElementById('priceFeed');
+  const balanceFromSpan = document.getElementById('balanceFrom');
+  const balanceToSpan = document.getElementById('balanceTo');
+
+  const customTokenModal = document.getElementById('customTokenModal');
+  const customTokenAddressInput = document.getElementById('customTokenAddress');
+  const addCustomTokenBtn = document.getElementById('addCustomTokenBtn');
+  const cancelCustomTokenBtn = document.getElementById('cancelCustomTokenBtn');
+
+  // Helper to check if string is a valid Ethereum/BSC address
+  function isValidAddress(addr) {
+    return /^0x[a-fA-F0-9]{40}$/.test(addr);
   }
 
-  function calcEstTokens(usd){
-    let remaining = usd;
-    let tokens = 0;
-    for(const s of STAGES){
-      const left = s.tokens - s.sold;
-      if(left <= 0) continue;
-      const maxUsdInStage = left * s.price;
-      const takeUsd = Math.min(remaining, maxUsdInStage);
-      tokens += takeUsd / s.price;
-      remaining -= takeUsd;
-      if(remaining <= 0) break;
-    }
-    return tokens;
+  // Open/close modal functions
+  function openCustomTokenModal() {
+    customTokenAddressInput.value = '';
+    customTokenModal.classList.add('active');
+    customTokenAddressInput.focus();
+  }
+  function closeCustomTokenModal() {
+    customTokenModal.classList.remove('active');
   }
 
-  // === Buy flow ===
-  let payAsset = "USDT";
-  document.addEventListener('click', (e)=>{
-    const el = e.target.closest('.pay');
-    if(el){
-      $$('.pay').forEach(x=>{ x.className = 'pay px-4 py-3 rounded-xl border border-white/15'; x.setAttribute('aria-pressed','false') });
-      el.className = 'pay btn'; el.setAttribute('aria-pressed','true');
-      payAsset = el.dataset.pay;
+  // Load custom tokens from localStorage
+  function loadCustomTokens() {
+    const stored = localStorage.getItem('customTokens');
+    if(stored) {
+      try {
+        customTokens = JSON.parse(stored);
+      } catch(e) {
+        customTokens = {};
+      }
     }
-  });
+  }
+  // Save custom tokens to localStorage
+  function saveCustomTokens() {
+    localStorage.setItem('customTokens', JSON.stringify(customTokens));
+  }
 
-  $('#inpUsd').addEventListener('input', (e)=>{
-    const usd = Number(e.target.value||0);
-    $('#estTokens').textContent = fmt(calcEstTokens(usd).toFixed(2));
-  });
+  // Update token selects with custom tokens included
+  function updateTokenSelects() {
+    // Clear custom tokens from selects first (except "Add Custom Token" option)
+    [...tokenFromSelect.options].forEach(opt => {
+      if(opt.value !== 'busd' && opt.value !== 'usdt' && opt.value !== 'bnb' && opt.value !== 'custom') {
+        tokenFromSelect.removeChild(opt);
+      }
+    });
+    [...tokenToSelect.options].forEach(opt => {
+      if(opt.value !== 'busd' && opt.value !== 'usdt' && opt.value !== 'bnb') {
+        tokenToSelect.removeChild(opt);
+      }
+    });
 
-  $('#btnBuy').addEventListener('click', async()=>{
-    const usd = Number($('#inpUsd').value||0);
-    if(!usd || usd < 1){ $('#buyMsg').textContent = 'Enter a valid amount.'; return; }
+    // Add custom tokens
+    for(const addr in customTokens) {
+      const token = customTokens[addr];
+      // From select
+      const optionFrom = document.createElement('option');
+      optionFrom.value = addr;
+      optionFrom.textContent = token.symbol + ' (Custom)';
+      tokenFromSelect.appendChild(optionFrom);
+      // To select - insert before last option "custom"
+      const optionTo = document.createElement('option');
+      optionTo.value = addr;
+      optionTo.textContent = token.symbol + ' (Custom)';
+      tokenToSelect.insertBefore(optionTo, tokenToSelect.querySelector('option[value="custom"]'));
+    }
+  }
 
-    if(!CONFIG.addresses.PRESALE_CONTRACT){
-      // Demo fallback (no contract yet)
-      simulateBuy(usd);
-      $('#buyMsg').textContent = `✅ Simulated: ${fmt(usd)} USD.`;
-      renderStages(); renderUser();
+  // On page load, load custom tokens
+  loadCustomTokens();
+  updateTokenSelects();
+
+  // Connect wallet
+  async function connectWallet() {
+    if(window.ethereum) {
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        if(accounts.length > 0) {
+          userAccount = accounts[0];
+          walletInfo.textContent = 'Connected: ' + userAccount.slice(0,6) + '...' + userAccount.slice(-4);
+          connectWalletBtn.style.display = 'none';
+          updateBalances();
+          validateSwap();
+          // Listen for account changes
+          window.ethereum.on('accountsChanged', (accounts) => {
+            if(accounts.length === 0) {
+              userAccount = null;
+              walletInfo.textContent = 'Not connected';
+              connectWalletBtn.style.display = 'inline-block';
+              balanceFromSpan.textContent = '0';
+              balanceToSpan.textContent = '0';
+              swapBtn.disabled = true;
+            } else {
+              userAccount = accounts[0];
+              walletInfo.textContent = 'Connected: ' + userAccount.slice(0,6) + '...' + userAccount.slice(-4);
+              updateBalances();
+              validateSwap();
+            }
+          });
+        }
+      } catch(err) {
+        alert('Wallet connection rejected or failed.');
+      }
+    } else {
+      alert('MetaMask or compatible wallet not detected.');
+    }
+  }
+
+  // Get ERC20 balance
+  async function getERC20Balance(tokenAddress, account) {
+    const minABI = [
+      {constant:true,inputs:[{name:"_owner",type:"address"}],name:"balanceOf",outputs:[{name:"balance",type:"uint256"}],type:"function"},
+      {constant:true,inputs:[],name:"decimals",outputs:[{name:"",type:"uint8"}],type:"function"},
+      {constant:true,inputs:[],name:"symbol",outputs:[{name:"",type:"string"}],type:"function"},
+    ];
+    try {
+      const tokenContract = new web3.eth.Contract(minABI, tokenAddress);
+      let balance = await tokenContract.methods.balanceOf(account).call();
+      let decimals = await tokenContract.methods.decimals().call();
+      let symbol = await tokenContract.methods.symbol().call();
+      return {balance, decimals: Number(decimals), symbol};
+    } catch(e) {
+      return null;
+    }
+  }
+
+  // Update balances display
+  async function updateBalances() {
+    if(!userAccount) {
+      balanceFromSpan.textContent = '0';
+      balanceToSpan.textContent = '0';
+      return;
+    }
+    let fromValue = tokenFromSelect.value;
+    let toValue = tokenToSelect.value;
+
+    let balanceFromVal = 0;
+    let balanceToVal = 0;
+
+    if(fromValue === 'bnb') {
+      try {
+        const bal = await web3.eth.getBalance(userAccount);
+        balanceFromVal = Number(web3.utils.fromWei(bal, 'ether'));
+      } catch(e) {
+        balanceFromVal = 0;
+      }
+    } else {
+      let token = tokenList[fromValue] || customTokens[fromValue];
+      if(token && token.address && token.address !== 'native') {
+        let res = await getERC20Balance(token.address, userAccount);
+        if(res) balanceFromVal = Number(web3.utils.fromWei(res.balance, 'ether'));
+      } else {
+        balanceFromVal = 0;
+      }
+    }
+
+    if(toValue === 'bnb') {
+      try {
+        const bal = await web3.eth.getBalance(userAccount);
+        balanceToVal = Number(web3.utils.fromWei(bal, 'ether'));
+      } catch(e) {
+        balanceToVal = 0;
+      }
+    } else {
+      let token = tokenList[toValue] || customTokens[toValue];
+      if(token && token.address && token.address !== 'native') {
+        let res = await getERC20Balance(token.address, userAccount);
+        if(res) balanceToVal = Number(web3.utils.fromWei(res.balance, 'ether'));
+      } else {
+        balanceToVal = 0;
+      }
+    }
+
+    balanceFromSpan.textContent = balanceFromVal.toFixed(4);
+    balanceToSpan.textContent = balanceToVal.toFixed(4);
+  }
+
+  // Update price feed display (dummy prices)
+  function updatePriceFeed() {
+    let fromVal = tokenFromSelect.value;
+    let toVal = tokenToSelect.value;
+
+    let fromToken = tokenList[fromVal] || customTokens[fromVal];
+    let toToken = tokenList[toVal] || customTokens[toVal];
+
+    if(!fromToken || !toToken) {
+      priceFeedDiv.textContent = '';
       return;
     }
 
-    // Real on-chain flow
-    try{
-      if(!provider) await connect();
-      if(payAsset === 'USDT'){
-        // 1) Approve USDT
-        const usdtDec = await usdt.decimals();
-        const amount = ethers.utils.parseUnits(String(usd), usdtDec);
-        const allowance = await usdt.allowance(user, CONFIG.addresses.PRESALE_CONTRACT);
-        if(allowance.lt(amount)){
-          const txA = await usdt.approve(CONFIG.addresses.PRESALE_CONTRACT, amount);
-          await txA.wait();
-        }
-        // 2) Buy with USDT
-        const txB = await presale.buyWithUSDT(amount);
-        await txB.wait();
-        $('#buyMsg').textContent = '✅ Purchase completed on-chain.';
-      } else {
-        // BNB path: ask contract quote for BNB value corresponding to USD
-        const usdUnits = ethers.utils.parseUnits(String(usd), 2); // assuming price in cents; adjust per contract
-        const bnbWei = await presale.quoteBNBForUSD(usdUnits);
-        const txB = await presale.buyWithBNB(usdUnits, { value: bnbWei });
-        await txB.wait();
-        $('#buyMsg').textContent = '✅ Purchase completed on-chain.';
-      }
-      await syncFromChain();
-      renderStages(); renderUser();
-    }catch(err){ $('#buyMsg').textContent = 'Tx failed: ' + (err?.message||err); }
-  });
-
-  function simulateBuy(usd){
-    let remaining = usd;
-    for(const s of STAGES){
-      const left = s.tokens - s.sold;
-      if(left <= 0) continue;
-      const maxUsd = left * s.price;
-      const takeUsd = Math.min(remaining, maxUsd);
-      const takeTokens = takeUsd / s.price;
-      s.sold += takeTokens;
-      state.raisedUSD += takeUsd;
-      remaining -= takeUsd;
-      if(remaining <= 0) break;
-    }
-    const addr = user || 'demo';
-    state.purchases[addr] = (state.purchases[addr]||0) + calcEstTokens(usd);
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    // Price calculation: price of from token in USD / price of to token in USD
+    let price = fromToken.priceUSD / toToken.priceUSD;
+    priceFeedDiv.textContent = `1 ${fromToken.symbol} ≈ ${price.toFixed(6)} ${toToken.symbol}`;
   }
 
-  // === Claim ===
-  $('#btnClaim').addEventListener('click', async()=>{
-    if(!CONFIG.addresses.VESTING_CONTRACT){
-      // Demo: mark claim in local state
-      const addr = user || 'demo';
-      const v = calcUserVesting(addr);
-      if(v.claimable>0){
-        state.claimed = state.claimed||{};
-        state.claimed[addr] = (state.claimed[addr]||0) + v.claimable;
-        localStorage.setItem(LS_KEY, JSON.stringify(state));
-        $('#claimMsg').textContent = `✅ Claimed ${fmt(v.claimable.toFixed(2))} (demo).`;
-        renderUser();
-      } else {
-        $('#claimMsg').textContent = 'Nothing claimable yet.';
-      }
+  // Validate swap input and enable/disable swap button
+  function validateSwap() {
+    let amount = parseFloat(amountFromInput.value);
+    if(!userAccount || !amount || amount <= 0) {
+      swapBtn.disabled = true;
       return;
     }
-    try{
-      if(!provider) await connect();
-      const tx = await vesting.claim();
-      await tx.wait();
-      $('#claimMsg').textContent = '✅ Claimed on-chain.';
-    }catch(err){ $('#claimMsg').textContent = 'Claim failed: '+(err?.message||err); }
+
+    let fromBalance = parseFloat(balanceFromSpan.textContent);
+    if(isNaN(fromBalance)) fromBalance = 0;
+
+    if(amount > fromBalance) {
+      swapBtn.disabled = true;
+      return;
+    }
+
+    // Prevent swapping same token
+    if(tokenFromSelect.value === tokenToSelect.value) {
+      swapBtn.disabled = true;
+      return;
+    }
+
+    swapBtn.disabled = false;
+  }
+
+  // Swap button click handler (dummy)
+  async function doSwap() {
+    alert('Swap functionality is not implemented in this demo.');
+  }
+
+  // Event listeners
+  connectWalletBtn.addEventListener('click', connectWallet);
+
+  tokenFromSelect.addEventListener('change', () => {
+    if(tokenFromSelect.value === 'custom') {
+      // Open modal to add custom token
+      tokenFromSelect.value = ''; // reset select so user chooses manually after adding
+      openCustomTokenModal();
+    } else {
+      updatePriceFeed();
+      updateBalances();
+      validateSwap();
+    }
   });
 
-  // === Vesting math for buyers (UI) ===
-  function calcUserVesting(address){
-    const total = Number(state.purchases[address]||0);
-    if(!total) return { total:0, unlocked:0, claimable:0, nextRelease:null };
+  tokenToSelect.addEventListener('change', () => {
+    updatePriceFeed();
+    updateBalances();
+    validateSwap();
+  });
 
-    const endAt = state.presaleEndedAt ? new Date(state.presaleEndedAt) : null;
-    if(!endAt){ return { total, unlocked:0, claimable:0, nextRelease:null } }
+  amountFromInput.addEventListener('input', validateSwap);
+  swapBtn.addEventListener('click', doSwap);
 
-    const v = CONFIG.vesting;
-    const tge = v.tgeUnlockPct * total;
-
-    const cliffEnd = new Date(endAt);
-    cliffEnd.setMonth(cliffEnd.getMonth() + v.cliffMonths);
-
-    const monthly = v.postCliffMonthlyPctOfTotal * total;
-
-    let unlocked = 0;
-    const nowTs = new Date();
-
-    if(nowTs >= endAt){ unlocked += tge; }
-
-    if(nowTs >= cliffEnd){
-      let months = (nowTs.getFullYear()-cliffEnd.getFullYear())*12 + (nowTs.getMonth()-cliffEnd.getMonth());
-      if(nowTs.getDate() < cliffEnd.getDate()) months -= 1;
-      months = Math.max(0, Math.min(months+1, v.postCliffMonths));
-      unlocked += months * monthly;
+  addCustomTokenBtn.addEventListener('click', async () => {
+    const address = customTokenAddressInput.value.trim();
+    if(!isValidAddress(address)) {
+      alert('Please enter a valid Ethereum or BSC token contract address.');
+      return;
     }
-    unlocked = Math.min(unlocked, total);
 
-    const claimed = Number(state.claimed?.[address]||0);
-    const claimable = Math.max(0, unlocked - claimed);
+    // Check if token already added
+    if(tokenFromSelect.querySelector(`option[value="${address}"]`) || tokenToSelect.querySelector(`option[value="${address}"]`)) {
+      alert('This token is already added.');
+      return;
+    }
 
-    // Next release label
-    let nextRelease = null;
-    if(!endAt || unlocked >= total){ nextRelease = null; }
-    else if(nowTs < endAt){ nextRelease = endAt; }
-    else {
-      const afterCliff = nowTs >= cliffEnd;
-      if(!afterCliff) nextRelease = cliffEnd; else {
-        let played = Math.floor((unlocked - tge + 1e-9) / monthly);
-        if(unlocked <= tge) played = 0;
-        if(played < v.postCliffMonths){
-          nextRelease = new Date(cliffEnd);
-          nextRelease.setMonth(nextRelease.getMonth() + played + 1);
-        }
+    // Fetch token info via web3 if connected, else dummy
+    let symbol = 'CTK';
+    let decimals = 18;
+    if(web3) {
+      try {
+        const minABI = [
+          {constant:true,inputs:[],name:"symbol",outputs:[{name:"",type:"string"}],type:"function"},
+          {constant:true,inputs:[],name:"decimals",outputs:[{name:"",type:"uint8"}],type:"function"},
+        ];
+        const tokenContract = new web3.eth.Contract(minABI, address);
+        symbol = await tokenContract.methods.symbol().call();
+        decimals = await tokenContract.methods.decimals().call();
+      } catch(e) {
+        alert('Failed to fetch token info, adding with default symbol "CTK" and 18 decimals.');
       }
     }
 
-    return { total, unlocked, claimable, nextRelease };
-  }
+    // Add custom token to list
+    customTokens[address] = {
+      symbol,
+      address,
+      decimals: Number(decimals),
+      priceUSD: 0.01 // Dummy price
+    };
 
-  // Demo button: end presale (start TGE)
-  const endBtn = document.createElement('button');
-  endBtn.className = 'mt-6 px-4 py-2 rounded-xl border border-white/15 text-sm';
-  endBtn.textContent = 'End Presale (Demo) & Start TGE';
-  endBtn.addEventListener('click', ()=>{
-    state.presaleEndedAt = new Date().toISOString();
-    localStorage.setItem(LS_KEY, JSON.stringify(state));
-    renderUser();
-    alert('Presale ended (demo). 15% TGE unlocked.');
+    saveCustomTokens();
+    updateTokenSelects();
+    closeCustomTokenModal();
+    alert(`Custom token ${symbol} added.`);
   });
-  document.querySelector('#buy .card').appendChild(endBtn);
 
-  // === Rendering ===
-  function renderHeader(){
-    document.getElementById('projectName').textContent = CONFIG.projectName;
-    document.getElementById('brand').textContent = CONFIG.projectName;
-    document.getElementById('tokenTicker').textContent = `Ticker: ${CONFIG.symbol}`;
-    document.getElementById('heroToken').textContent = CONFIG.symbol;
-    document.getElementById('goalUSD').textContent = `$${fmt(CONFIG.goalUSD)}`;
-    document.getElementById('goalUSD2').textContent = `$${fmt(CONFIG.goalUSD)}`;
-    document.getElementById('goalTKN').textContent = `${fmt(CONFIG.totalPresaleTokens)} ${CONFIG.symbol}`;
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('networkBadge').textContent = `Network: ${CONFIG.network.name}`;
-    document.getElementById('symbolInline').textContent = CONFIG.symbol;
-  }
+  cancelCustomTokenBtn.addEventListener('click', closeCustomTokenModal);
 
-  function renderStages(){
-    const rows = document.getElementById('stageRows');
-    rows.innerHTML = '';
-    STAGES.forEach(s=>{
-      const left = Math.max(0, s.tokens - s.sold);
-      const raisedStage = (s.sold * s.price) || 0;
-      const tr = document.createElement('tr');
-      tr.className = 'border-b border-white/10';
-      tr.innerHTML = `
-        <td class="p-3">${s.id}</td>
-        <td class="p-3">$${s.price.toFixed(2)}</td>
-        <td class="p-3">${fmt(s.tokens)}</td>
-        <td class="p-3">${fmt(Math.floor(s.sold))}</td>
-        <td class="p-3">${fmt(Math.floor(left))}</td>
-        <td class="p-3">$${fmt(Math.floor(raisedStage))}</td>
-      `;
-      rows.appendChild(tr);
-    });
+  // Initialize price feed and balances on page load
+  updatePriceFeed();
+  updateBalances();
 
-    const idx = currentStageIndex();
-    const active = STAGES[idx];
-    document.getElementById('currentStageLabel').textContent = `Stage ${active.id}/${STAGES.length}`;
-    document.getElementById('currentPrice').textContent = active.price.toFixed(2);
-    const left = Math.max(0, active.tokens - active.sold);
-    const sold = Math.min(active.tokens, active.sold);
-    const pct = Math.min(100, Math.round((sold/active.tokens)*100));
-    document.getElementById('stageProgress').style.width = pct + '%';
-    document.getElementById('soldInStage').textContent = fmt(Math.floor(sold));
-    document.getElementById('leftInStage').textContent = fmt(Math.floor(left));
-
-    const raised = STAGES.reduce((sum,s)=> sum + s.sold*s.price, 0);
-    const pctGoal = Math.min(100, (raised/CONFIG.goalUSD)*100);
-    document.getElementById('raisedUSD').textContent = fmt(Math.floor(raised));
-    document.getElementById('totalProgress').style.width = pctGoal + '%';
-  }
-
-  function renderUser(){
-    const addr = user || 'demo';
-    const v = calcUserVesting(addr);
-    document.getElementById('youTotal').textContent = fmt(Number(v.total.toFixed(2)));
-    document.getElementById('youUnlocked').textContent = fmt(Number(v.unlocked.toFixed(2)));
-    document.getElementById('youLocked').textContent = fmt(Number((v.total - v.unlocked).toFixed(2)));
-    document.getElementById('youClaimable').textContent = fmt(Number(v.claimable.toFixed(2)));
-
-    const btn = document.getElementById('btnClaim');
-    btn.disabled = !(v.claimable > 0);
-
-    const lbl = document.getElementById('nextReleaseLabel');
-    const cd = document.getElementById('countdown');
-    if(v.nextRelease){
-      lbl.textContent = v.nextRelease.toLocaleDateString('en-US');
-      const ms = v.nextRelease - new Date();
-      if(ms > 0){
-        const d = Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000);
-        cd.textContent = `${d}d ${h}h ${m}m`; 
-      } else cd.textContent = "—";
-    } else { lbl.textContent = '—'; cd.textContent = '—'; }
-  }
-
-  function renderTokenomics(){
-    const list = document.getElementById('tokenomicsList');
-    list.innerHTML = '';
-    TOKENOMICS.forEach((t,i)=>{
-      const el = document.createElement('div');
-      el.className = 'p-4 rounded-xl bg-white/5 flex items-center justify-between';
-      el.innerHTML = `<span>${t.key}</span><div class="text-right"><b>${t.value}%</b><div class="soft text-xs">${t.note||''}</div></div>`;
-      list.appendChild(el);
-    });
-
-    const ctx = document.getElementById('pie');
-    const data = TOKENOMICS.map(t=>t.value);
-    const labels = TOKENOMICS.map(t=>t.key);
-    new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data }] }, options:{ plugins:{ legend:{ position:'bottom' }}}});
-  }
-
-  // Events
-  document.getElementById('btnConnect').addEventListener('click', connect);
-  setInterval(()=> renderUser(), 30_000);
-
-  // Initial render
-  function boot(){
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('projectName').textContent = CONFIG.projectName;
-    document.getElementById('brand').textContent = CONFIG.projectName;
-    document.getElementById('tokenTicker').textContent = `Ticker: ${CONFIG.symbol}`;
-    document.getElementById('heroToken').textContent = CONFIG.symbol;
-    document.getElementById('goalUSD').textContent = `$${fmt(CONFIG.goalUSD)}`;
-    document.getElementById('goalUSD2').textContent = `$${fmt(CONFIG.goalUSD)}`;
-    document.getElementById('goalTKN').textContent = `${fmt(CONFIG.totalPresaleTokens)} ${CONFIG.symbol}`;
-    document.getElementById('networkBadge').textContent = `Network: ${CONFIG.network.name}`;
-    renderStages();
-    renderUser();
-    renderTokenomics();
-  }
-  boot();
-
-  </script>
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
 </body>
 </html>
+
+<script src=""></script>
+<script>
+  const feeWallet = "0xA328597cC78C4aB9f8CEd8eB1096Ef614B8b3a98";
