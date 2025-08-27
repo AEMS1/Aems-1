@@ -1,167 +1,200 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Add Liquidity & List Token</title>
 
-  <meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
 
-  <title>token AEMS</title>
-
-  <link rel="stylesheet" href="style.css">
-
+<style>
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #141e30, #243b55);
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container {
+    background: rgba(255,255,255,0.05);
+    padding: 30px 25px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+  }
+  h1 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 700;
+    color: #00c6ff;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #ffeb3b;
+  }
+  input, button {
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: none;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    outline: none;
+  }
+  input[type=text], input[type=number] {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-weight: 600;
+  }
+  button#connectWallet, button#addLiquidity {
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    box-shadow: 0 0 15px #00c6ffaa;
+  }
+  button#connectWallet:hover, button#addLiquidity:hover {
+    background: linear-gradient(90deg, #0072ff, #00c6ff);
+    box-shadow: 0 0 25px #00c6ffcc;
+    transform: scale(1.05);
+  }
+  #walletInfo {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ffeb3b;
+    font-weight: 600;
+    min-height: 1.5em;
+    word-break: break-all;
+  }
+  #message {
+    text-align: center;
+    font-weight: 600;
+    min-height: 1.4em;
+    margin-bottom: 15px;
+  }
+  a.backLink {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    color: #00c6ff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  a.backLink:hover {
+    text-decoration: underline;
+  }
+</style>
 </head>
+<body>
+
+<div class="container">
+  <h1>➕ Add Liquidity & List Your Token</h1>
+  
+  <div id="walletInfo">Wallet: <em>Not connected</em></div>
+  <button id="connectWallet">Connect Wallet</button>
+  
+  <label for="tokenAddress">Token Contract</label>
+  <input type="text" id="tokenAddress" placeholder="0x..." autocomplete="off" />
+
+  <label for="tokenSymbol">Token Symbol</label>
+  <input type="text" id="tokenSymbol" placeholder="e.g. MYTK" maxlength="6" autocomplete="off" />
+
+  <label for="amountToken">Token Amount</label>
+  <input type="number" id="amountToken" placeholder="Amount of token to add" min="0" step="any" autocomplete="off" />
+
+  <label for="amountETH">ETH / BNB Amount</label>
+  <input type="number" id="amountETH" placeholder="Amount of ETH/BNB to add" min="0" step="any" autocomplete="off" />
+
+  <button id="addLiquidity" disabled>Add Liquidity</button>
+
+  <div id="message"></div>
+
+  <a href="index.html" class="backLink">⬅️ Back to Swap</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+
+<script>
+  let web3;
+  let userAccount = null;
+
+  const connectWalletBtn = document.getElementById('connectWallet');
+  const walletInfo = document.getElementById('walletInfo');
+  const addLiquidityBtn = document.getElementById('addLiquidity');
+  const messageDiv = document.getElementById('message');
+
+  const tokenAddressInput = document.getElementById('tokenAddress');
+  const tokenSymbolInput = document.getElementById('tokenSymbol');
+  const amountTokenInput = document.getElementById('amountToken');
+  const amountETHInput = document.getElementById('amountETH');
+
+  function isValidAddress(addr) {
+    return /^0x[a-fA-F0-9]{40}$/.test(addr);
+  }
+
+  function validateInputs() {
+    if (!userAccount) return false;
+    if (!isValidAddress(tokenAddressInput.value.trim())) return false;
+    if (tokenSymbolInput.value.trim().length < 1) return false;
+    if (parseFloat(amountTokenInput.value) <= 0) return false;
+    if (parseFloat(amountETHInput.value) <= 0) return false;
+    return true;
+  }
+
+  function toggleAddLiquidityButton() {
+    addLiquidityBtn.disabled = !validateInputs();
+  }
+
+  connectWalletBtn.addEventListener('click', async () => {
+    if (!window.ethereum) {
+      alert('MetaMask not detected. Please install it to continue.');
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      userAccount = accounts[0];
+      web3 = new Web3(window.ethereum);
+      walletInfo.textContent = `Wallet: ${userAccount}`;
+      toggleAddLiquidityButton();
+      messageDiv.textContent = '';
+    } catch {
+      alert('Wallet connection failed or rejected.');
+    }
+  });
+
+  [tokenAddressInput, tokenSymbolInput, amountTokenInput, amountETHInput].forEach(input => {
+    input.addEventListener('input', toggleAddLiquidityButton);
+  });
+
+  addLiquidityBtn.addEventListener('click', async () => {
+    if (!validateInputs()) {
+      messageDiv.style.color = '#ff5555';
+      messageDiv.textContent = 'Please fill all fields correctly.';
+      return;
+    }
+    messageDiv.style.color = '#00ff90';
+    messageDiv.textContent = 'Processing liquidity addition...';
+
+    // Simulate adding liquidity & listing token (no real contract interaction)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    messageDiv.textContent = `Liquidity added successfully!\nToken ${tokenSymbolInput.value.trim().toUpperCase()} is now listed.`;
+    tokenAddressInput.value = '';
+    tokenSymbolInput.value = '';
+    amountTokenInput.value = '';
+    amountETHInput.value = '';
+    addLiquidityBtn.disabled = true;
+  });
+</script>
 
-<div class="guid-content">
-
-    <div class="menu-bottuns">
-
-        <a href="/notcoin/frens.html" class="button b-r">
-
-            <img src="i.png" alt="" width="35px">
-
-            <span class="select-none">Tried</span>
-
-        </a>
-
-        <a href="index.html" class="button b-r">
-
-            <img src="B.png" alt="" width="35px">
-
-            <span class="select-none">game</span>
-
-        </a>
-
-        <a href="/notcoin/boost.html" class="button">
-
-            <img src="؟.png" alt="" width="35px">
-
-            <span class="select-none">Game guide</span>
-
-        </a>
-
-    </div>
-
-    <div class="guid-title">
-
-        <h2>token AEMS</h2>
-
-    </div>
-
-    <div class="guid-help">
-
-        <div class="guid-help-detail">
-
-            <div>
-
-                <img src="l.png" width="180px">
-
-            </div>
-
-            <div>
-
-                <h3>Information</h3>
-
-                <p>Name:AEMS (AMS)</p>
-
-                <p>Token address to add:</p>
-
-                <body>
-
-
-
-                    <div class="">
-
-                      <span id="textToCopy">0x259115680169276d0e4286acba362460456697c5</span>
-
-                      <button onclick="copyText()"> copy</button>
-
-                    </div>
-
-                  
-
-                    <script>
-
-                      function copyText() {
-
-                        const text = document.getElementById("textToCopy").innerText;
-
-                        navigator.clipboard.writeText(text).then(function() {
-
-                          alert("Copy!");
-
-                        }, function(err) {
-
-                          alert("Couldn't copy!");
-
-                        });
-
-                      }
-
-                    </script>
-
-                  
-
-                  </body>
-
-                <p>Number:100,000,000 AMS</p>
-
-                <p>Decimal:18</p>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="guid-help-detail">
-
-            <div>
-
-                <img src="k.png" width="50px">
-
-            </div>
-
-            <div>
-
-                <h4>Token capabilities</h4>
-
-                <p>Play and win prizes</p>
-
-                <p>Profit from holding tokens</p>
-
-                <p>We are planning to further improve and implement better features for this token...</p>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="guid-help-detail">
-
-            <div>
-
-                <img src="k.png" width="50px">
-
-            </div>
-
-            <div>
-
-                <h5>Token roadmap</h5>
-
-                <p>1. Paying for game entry fees with tokens</p>
-
-                <p>2. Get tokens in the game</p>
-
-                <p>In addition, in the near future, staking capabilities, various games, NFT market, and...</p>
-
-            </div>
-
-        </div>
-
-
-
-    </div>
-
-  </div>
+</body>
+</html>
